@@ -1,4 +1,4 @@
-# Copyright 2022-present Contributors to the colorpicker project.
+# Copyright 2022-present Contributors to the logctool project.
 # SPDX-License-Identifier: BSD-3-Clause
 # https://github.com/mikaelsundell/logctool
 
@@ -29,4 +29,20 @@ target_link_libraries( ${project_name}
     ${IMATH_LIBRARIES}  
     ${OIIO_LIBRARIES}
     ${OCIO_LIBRARIES}
+)
+
+add_custom_command(
+    TARGET ${project_name}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/fonts
+        $<TARGET_FILE_DIR:${project_name}>/fonts
+)
+
+add_custom_command(
+    TARGET ${project_name}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resources
+        $<TARGET_FILE_DIR:${project_name}>/resources
 )

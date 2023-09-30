@@ -7,6 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <variant>
 
 // imath
 #include <Imath/ImathMatrix.h>
@@ -32,6 +33,40 @@ using namespace OpenColorIO_v2_2dev;
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+// prints
+template <typename T>
+static void
+print_info(std::string param, const T& value = T()) {
+    std::cout << "info: " << param << value << std::endl;
+}
+
+static void
+print_info(std::string param) {
+    print_info<std::string>(param);
+}
+
+template <typename T>
+static void
+print_warning(std::string param, const T& value = T()) {
+    std::cout << "warning: " << param << value << std::endl;
+}
+
+static void
+print_warning(std::string param) {
+    print_warning<std::string>(param);
+}
+
+template <typename T>
+static void
+print_error(std::string param, const T& value = T()) {
+    std::cerr << "error: " << param << value << std::endl;
+}
+
+static void
+print_error(std::string param) {
+    print_error<std::string>(param);
+}
+
 // logc tool
 struct LogCTool
 {
@@ -42,17 +77,11 @@ struct LogCTool
     int height = 512;
     int channels = 3;
     float midgray = 0.18;
-    std::string dataformat;
+    std::string dataformat = "float";
     std::string convertlut;
-    std::string outfilename;
-    std::string outfalsecolor;
-    std::string outzones;
-    // Example
-    // logctool -ei 800
-    //          --format 10bit
-    //          --convertlut "arri2bm6k.cube"
-    //          --outfilename "ei800.dpx"
-    //          --outfalsecolor "ei800_falsecolor.cube"
+    std::string outputfilename;
+    std::string outputfalsecolorcubefile;
+    std::string outputstopscubefile;
     int code = EXIT_SUCCESS;
 };
 
@@ -75,10 +104,34 @@ set_ei(int argc, const char* argv[])
 }
 
 static int
+set_width(int argc, const char* argv[])
+{
+    OIIO_DASSERT(argc == 2);
+    tool.width = Strutil::stoi(argv[1]);
+    return 0;
+}
+
+static int
+set_height(int argc, const char* argv[])
+{
+    OIIO_DASSERT(argc == 2);
+    tool.height = Strutil::stoi(argv[1]);
+    return 0;
+}
+
+static int
+set_convertlut(int argc, const char* argv[])
+{
+    OIIO_DASSERT(argc == 2);
+    tool.convertlut = argv[1];
+    return 0;
+}
+
+static int
 set_outfilename(int argc, const char* argv[])
 {
     OIIO_DASSERT(argc == 2);
-    tool.outfilename = argv[1];
+    tool.outputfilename = argv[1];
     return 0;
 }
 
@@ -88,7 +141,79 @@ print_help(ArgParse& ap)
     ap.print_help();
 }
 
-// logc gamma
+// utils - dates
+std::string datetime()
+{
+    std::time_t now = time(NULL);
+    struct tm tm;
+    Sysutil::get_local_time(&now, &tm);
+    char datetime[20];
+    strftime(datetime, 20, "%Y-%m-%d %H:%M:%S", &tm);
+    return std::string(datetime);
+}
+
+// utils - types
+std::string str_by_float(float value)
+{
+    char str[20];
+    sprintf(str, "%.2f", value);
+    return std::string(str);
+}
+
+std::string str_by_int(int value)
+{
+    return std::to_string(value);
+}
+
+std::string str_by_10bit(int value)
+{
+    return std::to_string(value >> 6); // 10bit stored 16bit and bitshifted for strings
+}
+
+// utils - colors
+Imath::Vec3<float> rgb_from_hsv(const Imath::Vec3<float>& hsv) {
+    float hue = hsv.x;
+    float saturation = hsv.y;
+    float value = hsv.z;
+
+    int hi = static_cast<int>(std::floor(hue / 60.0f)) % 6;
+    float f = hue / 60.0f - static_cast<float>(hi);
+    float p = value * (1.0f - saturation);
+    float q = value * (1.0f - f * saturation);
+    float t = value * (1.0f - (1.0f - f) * saturation);
+
+    float r, g, b;
+    switch (hi) {
+        case 0: r = value; g = t; b = p; break;
+        case 1: r = q; g = value; b = p; break;
+        case 2: r = p; g = value; b = t; break;
+        case 3: r = p; g = q; b = value; break;
+        case 4: r = t; g = p; b = value; break;
+        case 5: r = value; g = p; b = q; break;
+    }
+
+    return Imath::Vec3<float>(r, g, b);
+}
+
+
+// utils - filesystem
+std::string program_path(const std::string& path)
+{
+    return Filesystem::parent_path(Sysutil::this_program_path()) + path;
+}
+
+std::string font_path(const std::string& font)
+{
+    return Filesystem::parent_path(Sysutil::this_program_path()) + "/fonts/" + font;
+}
+
+std::string resources_path(const std::string& resource)
+{
+    return Filesystem::parent_path(Sysutil::this_program_path()) + "/resources/" + resource;
+}
+
+
+// utils - logc
 struct LogCGamma
 {
     int ei;
@@ -120,11 +245,6 @@ struct LogCGamma
 int 
 main( int argc, const char * argv[])
 {
-    const double vmin = channel_traits<float>::min_value();
-    const double vmax = channel_traits<float>::max_value();
-    
-    
-    
     // Helpful for debugging to make sure that any crashes dump a stack
     // trace.
     Sysutil::setup_crash_stacktrace("stdout");
@@ -144,31 +264,40 @@ main( int argc, const char * argv[])
     ap.arg("-v", &tool.verbose)
       .help("Verbose status messages");
     
-    ap.arg("-ei %d:EI")
+    ap.arg("--ei %d:EI")
       .help("LogC exposure index")
       .action(set_ei);
     
-    ap.arg("-dataformat %s:DATAFORMAT")
+    ap.arg("--dataformat %s:DATAFORMAT")
       .help("LogC format (float, uint10, uint16 and unit32)")
       .action(set_dataformat);
     
+    ap.arg("--convertlut %s:LUT")
+      .help("LogC conversion lut")
+      .action(set_convertlut);
+    
     ap.separator("Output flags:");
-    ap.arg("--convertlut", &tool.convertlut)
-      .help("Optional convert lut to other log format");
-
-    ap.arg("--outfilename %s:OUTFILENAME")
-      .help("Optional filename of output log steps")
+    ap.arg("--outputfilename %s:OUTFILENAME")
+      .help("Output filename of log steps")
       .action(set_outfilename);
+
+    ap.arg("--outputwidth %s:WIDTH")
+      .help("Output width of log steps")
+      .action(set_width);
     
-    ap.arg("--outfalsecolor", &tool.outfalsecolor)
-      .help("Optional filename of output falsecolor lut");
+    ap.arg("--outputheight %s:HEIGHT")
+      .help("Output height of log steps")
+      .action(set_height);
     
-    ap.arg("--outzones", &tool.outfalsecolor)
-      .help("Optional filename of output zones lut");
+    ap.arg("--outputfalsecolorcubefile %s:FILE", &tool.outputfalsecolorcubefile)
+      .help("Optional output false color cube (lut) file");
+    
+    ap.arg("--outputstopscubefile %s:FILE", &tool.outputstopscubefile)
+      .help("Optional output stops cube (lut) file");
 
     // clang-format on
     if (ap.parse_args(argc, (const char**)argv) < 0) {
-        std::cerr << "error: " << ap.geterror() << std::endl;
+        print_error("Could no parse arguments: ", ap.geterror());
         print_help(ap);
         ap.abort();
         return EXIT_FAILURE;
@@ -179,25 +308,31 @@ main( int argc, const char * argv[])
         return EXIT_SUCCESS;
     }
     if (!tool.ei) {
-        std::cerr << "error: must have ei parameter\n";
+        print_error("missing parameter: ", "ei");
         ap.briefusage();
         ap.abort();
         return EXIT_FAILURE;
     }
     if (!tool.dataformat.size()) {
-        std::cerr << "error: must have data format parameter\n";
+        print_error("missing parameter: ", "dataformat");
+        ap.briefusage();
+        ap.abort();
+        return EXIT_FAILURE;
+    }
+    if (!tool.outputfilename.size()) {
+        print_error("missing parameter: ", "outputfilename");
         ap.briefusage();
         ap.abort();
         return EXIT_FAILURE;
     }
     if (argc <= 1) {
         ap.briefusage();
-        std::cout << "\nFor detailed help: logctool --help\n";
+        print_error("For detailed help: logctool --help");
         return EXIT_FAILURE;
     }
     
     // logc program
-    std::cout << "logctool -- a set of utilities for processing logc encoded images" << std::endl;
+    print_info("logctool -- a set of utilities for processing logc encoded images");
     
     // logc midgray
     float midgray = 0.18f;
@@ -216,6 +351,7 @@ main( int argc, const char * argv[])
         LogCGamma() = { 400,  0.008318, 5.555556, 0.064901, 0.256598, 0.383999, 5.571960, 0.092795 },
         LogCGamma() = { 500,  0.009031, 5.555556, 0.060939, 0.253569, 0.384493, 5.506188, 0.092800 },
         LogCGamma() = { 640,  0.009840, 5.555556, 0.056443, 0.250219, 0.385040, 5.433426, 0.092805 },
+        //              800   default gamma
         LogCGamma() = { 800,  0.010591, 5.555556, 0.052272, 0.247190, 0.385537, 5.367655, 0.092809 },
         LogCGamma() = { 1000, 0.011361, 5.555556, 0.047996, 0.244161, 0.386036, 5.301883, 0.092814 },
         LogCGamma() = { 1280, 0.012235, 5.555556, 0.043137, 0.240810, 0.386590, 5.229121, 0.092819 },
@@ -229,23 +365,25 @@ main( int argc, const char * argv[])
         }
     }
     
+    // image data
+    print_info("image data");
     if (gamma.ei > 0)
     {
-        std::cout << "info: ei:   " << gamma.ei << std::endl;
+        print_info("    ei: ", gamma.ei);
         if (tool.verbose)
         {
-            std::cout << " cut:   " << gamma.cut << "\n"
-                      << " a:     " << gamma.a << "\n"
-                      << " b:     " << gamma.b << "\n"
-                      << " c:     " << gamma.c << "\n"
-                      << " d:     " << gamma.d << "\n"
-                      << " e:     " << gamma.e << "\n"
-                      << " f:     " << gamma.f << "\n";
+            print_info("   cut: ", gamma.cut);
+            print_info("     a: ", gamma.a);
+            print_info("     b: ", gamma.b);
+            print_info("     c: ", gamma.c);
+            print_info("     d: ", gamma.d);
+            print_info("     e: ", gamma.e);
+            print_info("     f: ", gamma.f);
         }
     }
     else
     {
-        std::cerr << "error: unknown ei: " << tool.ei << std::endl;
+        print_error("unknown ei: ", tool.ei);
         ap.abort();
         return EXIT_FAILURE;
     }
@@ -262,7 +400,7 @@ main( int argc, const char * argv[])
     }
     else if (tool.dataformat == "uint10") {
         typedesc = TypeDesc::UINT16;
-        is10bit = true;
+        is10bit = true; // 10bit stored 16bit and bitshifted in formats like DPX
     }
     else if (tool.dataformat == "uint16") {
         typedesc = TypeDesc::UINT16;
@@ -271,15 +409,15 @@ main( int argc, const char * argv[])
         typedesc = TypeDesc::UINT32;
     }
     else {
-        std::cerr << "error: unknown data format: " << tool.dataformat << std::endl;
+        print_error("unknown data format: ", tool.dataformat);
         ap.abort();
         return EXIT_FAILURE;
     }
     
     // type info
-    std::cout << "info: data format: " << typedesc << std::endl;
+    print_info("format: ", typedesc);
     if (is10bit) {
-        std::cout << " 10bit: " << "yes" << std::endl;
+        print_info(" 10bit: ", "yes");
     }
     
     // type data
@@ -293,21 +431,44 @@ main( int argc, const char * argv[])
     memset(signaldata, 0, typesize * signalsize);
 
     // signal info
-    std::cout << "info: signal: " << signalsize << " stops" << std::endl;
+    print_info("signal stops: ", signalsize);
     
-    for(int s=0; s<signalsize; s++)
-    {
+    // lut info
+    ConstConfigRcPtr config = Config::CreateRaw();
+    ConstCPUProcessorRcPtr cpuProcessor;
+    
+    if (tool.convertlut.size()) {
+        std::string convertlut = resources_path(tool.convertlut);
+        FileTransformRcPtr transform = FileTransform::Create();
+        transform->setSrc(convertlut.c_str());
+        transform->setInterpolation(INTERP_BEST);
+        
+        ConstProcessorRcPtr processor = config->getProcessor(transform);
+        cpuProcessor = processor->getDefaultCPUProcessor();
+    }
+
+    for(int s=0; s<signalsize; s++) {
         int relativestop = s-8;
         float lin = pow(2, relativestop) * midgray;
         float log = std::min<float>(gamma.lin2log(lin), typelimit);
         
-        if (tool.verbose)
-        {
-            std::cout << " stop:  " << s << "\n"
-                      << "   lin: " << lin << "\n"
-                      << "   log: " << log << "\n";
+        if (tool.verbose) {
+            print_info(" stop:  ", relativestop);
+            print_info("   lin: ", lin);
+            print_info("   log: ", log);
         }
         
+        if (tool.convertlut.size()) {
+            float triplet[3] = { log, log, log };
+            {
+                cpuProcessor->applyRGB(triplet);
+                log = triplet[0];
+            }
+            if (tool.verbose) {
+                print_info("   lut: ", log);
+            }
+        }
+
         if (typedesc.is_floating_point()) {
             memcpy((char*)signaldata + typesize*s, &log, typesize);
             if (relativestop == 0) {
@@ -315,8 +476,9 @@ main( int argc, const char * argv[])
                 midlog = log;
             }
             if (tool.verbose) {
-                std::cout << "   value:" << log << std::endl;
+                print_info("   value: ", log);
             }
+            
         } else {
             int value = round(typelimit * log);
             memcpy((char*)signaldata + typesize*s, &value, typesize);
@@ -329,14 +491,17 @@ main( int argc, const char * argv[])
                 midlog = log;
             }
             if (tool.verbose) {
-                std::cout << " value: " << value << std::endl;
+                if (is10bit) {
+                    print_info("   value: ", str_by_10bit(value));
+                } else {
+                    print_info("   value: ", str_by_int(value));
+                }
             }
         }
     }
-    if (tool.outfilename.size()) {
+    if (tool.outputfilename.size()) {
         
-        // signal info
-        std::cout << "info: image: " << tool.outfilename << std::endl;
+        print_info("image: ", tool.outputfilename);
         
         // image data
         int width = tool.width;
@@ -344,11 +509,10 @@ main( int argc, const char * argv[])
         int channels = tool.channels;
         int imagesize = width * height * channels;
         
-        if (tool.verbose)
-        {
-            std::cout << " width:  " << width << "\n"
-                      << "height:  " << height << "\n"
-                      << "channels:" << channels << "\n";
+        if (tool.verbose) {
+            print_info(" width:    ", width);
+            print_info(" height:   ", height);
+            print_info(" channels: ", channels);
         }
 
         void* imagedata = (void*)malloc(typesize * imagesize);
@@ -356,6 +520,7 @@ main( int argc, const char * argv[])
         
         int stopwidth = floor(width / signalsize);
         void* pixeldata = (void*)malloc(typesize);
+        std::map<int, std::pair<int, float>> stops;
         
         for(int y=0; y<height; ++y)
         {
@@ -364,11 +529,18 @@ main( int argc, const char * argv[])
             for(int x=0; x<width; ++x)
             {
                 int stop = std::min<int>(signalsize - 1, stopcount);
-                if (((float)y / height) > 0.5)
-                {
+                if (((float)y / height) > 0.5) {
+                    
                     float relativestop = (((float)x / width) * (signalsize - 1)) - 8;
                     float lin = pow(2, relativestop) * midgray;
                     float log = gamma.lin2log(lin);
+                    if (tool.convertlut.size()) {
+                        float triplet[3] = { log, log, log };
+                        {
+                            cpuProcessor->applyRGB(triplet);
+                            log = triplet[0];
+                        }
+                    }
                     
                     if (typedesc.is_floating_point()) {
                         memcpy(pixeldata, &log, typesize);
@@ -380,9 +552,22 @@ main( int argc, const char * argv[])
                 else
                 {
                     if (x % stopwidth == 0) {
-                        int stop = std::min(signalsize - 1, stopcount);
+                        
+                        int stop = std::min<int>(signalsize - 1, stopcount);
+                        int relativestop = stop-8;
                         // data
                         memcpy(pixeldata, (char*)signaldata + typesize*stop, typesize);
+                        if (stops.find(relativestop) == stops.end()) {
+                            if (typedesc.is_floating_point()) {
+                                float log = 0.0;
+                                memcpy(&log, pixeldata, typesize);
+                                stops[relativestop] = std::pair<int, float>(stop * stopwidth + stopwidth/2, log);
+                            } else {
+                                int value = 0;
+                                memcpy(&value, pixeldata, typesize);
+                                stops[relativestop] = std::pair<int, float>(stop * stopwidth + stopwidth/2, value);
+                            }
+                        }
                         stopcount++;
                     }
                 }
@@ -401,27 +586,223 @@ main( int argc, const char * argv[])
         
         ImageBuf imageBuf = ImageBuf(spec, imagedata);
         {
-            float fillwidth = width * 0.3;
+            float fillwidth = width * 0.4;
             float fillheight = height * 0.2;
+            float fillcolor[3] = { midlog, midlog, midlog };
             
-            float pink[3] = { midlog, midlog, midlog };
-
+            std::string font = "Roboto-Regular.ttf";
+            float fontsmall = height * 0.025;
+            float fontmedium = height * 0.04;
+            float fontlarge = height * 0.08;
+            float fontcolor[] = { 1, 1, 1, 1 };
+            
             float xbegin = (width - fillwidth) / 2.0;
             float ybegin = (height - fillheight) / 2.0;
-            float color[] = { 1, 1, 1, 1 };
-            
 
-            ImageBufAlgo::fill(imageBuf, pink,
+            ImageBufAlgo::fill(imageBuf, fillcolor,
                 ROI(
                     xbegin, width - xbegin, ybegin, height - ybegin
                 )
             );
             
-            std::cerr << "imageBuf: " << imageBuf.geterror() << std::endl;
+            for (std::pair<int, std::pair<int, float>> stop : stops) {
+                
+                int x = stop.second.first;
+                float value = stop.second.second;
+  
+                ImageBufAlgo::render_text(imageBuf,
+                    x,
+                    height * 0.04,
+                    std::to_string(stop.first), // relative stop
+                    fontmedium,
+                    font_path(font),
+                    fontcolor,
+                    ImageBufAlgo::TextAlignX::Center,
+                    ImageBufAlgo::TextAlignY::Center
+                );
+
+                std::string text;
+                if (typedesc.is_floating_point()) {
+                    text = str_by_float(value);
+                    
+                } else {
+                    if (is10bit) {
+                        text = str_by_10bit(value);
+                    } else {
+                        text = str_by_int(value);
+                    }
+                }
+                
+                ImageBufAlgo::render_text(imageBuf,
+                    x,
+                    height * 0.04 + fontmedium,
+                    text,
+                    fontsmall,
+                    font_path(font),
+                    fontcolor,
+                    ImageBufAlgo::TextAlignX::Center,
+                    ImageBufAlgo::TextAlignY::Center
+                );
+            }
+            
+            ImageBufAlgo::render_text(imageBuf,
+                width / 2.0,
+                height / 2.0,
+                "LogC Ø:" +
+                str_by_float(midgray) +
+                " EI:" +
+                str_by_int(tool.ei),
+                fontlarge,
+                font_path(font),
+                fontcolor,
+                ImageBufAlgo::TextAlignX::Center,
+                ImageBufAlgo::TextAlignY::Center
+            );
+            
+            ImageBufAlgo::render_text(imageBuf,
+                width * 0.02,
+                height - height * 0.04,
+                "Logctool " +
+                datetime() +
+                " " +
+                Filesystem::filename(tool.outputfilename) +
+                " (" +
+                tool.dataformat +
+                " " +
+                std::to_string(spec.width) +
+                "x" +
+                std::to_string(spec.height) +
+                ")",
+                fontsmall,
+                font_path(font),
+                fontcolor,
+                ImageBufAlgo::TextAlignX::Left,
+                ImageBufAlgo::TextAlignY::Center
+            );
+            
+            if (tool.convertlut.size()) {
+                
+                ImageBufAlgo::render_text(imageBuf,
+                    width / 2.0,
+                    height / 2.0 + fontlarge,
+                    "Conversion LUT: " + tool.convertlut,
+                    fontsmall,
+                    font_path(font),
+                    fontcolor,
+                    ImageBufAlgo::TextAlignX::Center,
+                    ImageBufAlgo::TextAlignY::Center
+                );
+            }
         }
         
-        if (!imageBuf.write(tool.outfilename)) {
-            std::cerr << "error: " << imageBuf.geterror() << std::endl;
+        print_info("Writing output file: ", tool.outputfilename);
+        
+        if (!imageBuf.write(tool.outputfilename)) {
+            print_error("could not write file: ", imageBuf.geterror());
+        }
+        
+        // output stops cube (LUT) file
+        if (tool.outputfalsecolorcubefile.length())
+        {}
+        
+        // output stops cube (LUT) file
+        if (tool.outputstopscubefile.length())
+        {
+            print_info("Writing output stops cube (lut) file: ", tool.outputstopscubefile);
+            
+            int size = 32 + 1;
+            int nsize = size * size * size;
+            std::vector<float> values;
+            
+            // table
+            std::vector<Imath::Vec4<float>> colors {
+                // blacks
+                Imath::Vec4<float>(-8, 0.0f, 0.0f, 0.0f),
+                Imath::Vec4<float>(-7, 0.0f, 0.0f, 0.0f),
+                // purple - toe
+                Imath::Vec4<float>(-6, 270.0f, 0.6f, 0.6f),
+                Imath::Vec4<float>(-5, 270.0f, 0.4f, 0.8f),
+                // cyan
+                Imath::Vec4<float>(-4, 180.0f, 0.6f, 0.6f),
+                Imath::Vec4<float>(-3, 180.0f, 0.4f, 0.8f),
+                // green
+                Imath::Vec4<float>(-2, 90.0f, 0.6f, 0.6f),
+                Imath::Vec4<float>(-1, 90.0f, 0.4f, 0.8f),
+                // gray
+                Imath::Vec4<float>(0 , 90.0, 0.00f, 0.5f),
+                // yellow
+                Imath::Vec4<float>(1 , 60.0f, 0.4f, 1.0f),
+                Imath::Vec4<float>(2 , 60.0f, 0.6f, 1.0f),
+                // orange
+                Imath::Vec4<float>(3 , 30.0f, 0.4f, 1.0f),
+                Imath::Vec4<float>(4 , 30.0f, 0.6f, 1.0f),
+                // cerise
+                Imath::Vec4<float>(5 , 350.0f, 0.4f, 1.0f),
+                Imath::Vec4<float>(6 , 350.0f, 0.6f, 1.0f),
+                // pink
+                Imath::Vec4<float>(7 , 0.0f, 0.0f, 0.95f),
+                Imath::Vec4<float>(8 , 0.0f, 0.0f, 1.0f),
+            };
+            
+            for (Imath::Vec4<float>& color : colors) {
+                float lin = pow(2, color[0]+0.5f) * midgray;
+                float log = std::min<float>(gamma.lin2log(lin), 1.0f);
+                if (tool.convertlut.size()) {
+                    float triplet[3] = { log, log, log };
+                    {
+                        cpuProcessor->applyRGB(triplet);
+                        log = triplet[0];
+                    }
+                }
+                color[0] = log;
+            }
+        
+            for (unsigned i = 0; i < nsize; ++i)
+            {
+                float r = std::max(0.0f, std::min(1.0f, static_cast<float>(i % size) / (size - 1)));
+                float g = std::max(0.0f, std::min(1.0f, static_cast<float>((i / size) % size) / (size - 1)));
+                float b = std::max(0.0f, std::min(1.0f, static_cast<float>((i / (size * size)) % size) / (size - 1)));
+                float y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                for (Imath::Vec4<float>& color : colors) {
+                    if (y <= color[0]) {
+                        Imath::Vec3<float> color = rgb_from_hsv(
+                            Imath::Vec3<float>(color[1], color[2], color[3])
+                        );
+                        values.push_back(color[0]);
+                        values.push_back(color[1]);
+                        values.push_back(color[2]);
+                        break;
+                    }
+                }
+            }
+            
+            std::ofstream outputFile(tool.outputstopscubefile);
+            if (outputFile)
+            {
+                outputFile << "# LogCTool Stops LUT" << std::endl;
+                outputFile << "#   Input: LogC3 EI: " << tool.ei << std::endl;
+                if (tool.convertlut.size()) {
+                outputFile << "#        : Conversion LUT: " << tool.convertlut << std::endl;
+                }
+                outputFile << "#        : floating point data (range 0.0 - 1.0)" << std::endl;
+                outputFile << "#  Output: Stops luminance colors" << std::endl;
+                outputFile << "#        : floating point data (range 0.0 - 1.0)" << std::endl;
+                outputFile << std::endl;
+                outputFile << "LUT_3D_SIZE " << size << std::endl;
+                outputFile << "DOMAIN_MIN 0.0 0.0 0.0" << std::endl;
+                outputFile << "DOMAIN_MAX 1.0 1.0 1.0" << std::endl;
+                outputFile << std::endl;
+                
+                for (unsigned i = 0; i < nsize; ++i) {
+                    outputFile << values[i * 3] << " "
+                               << values[i * 3 + 1] << " "
+                               << values[i * 3 + 2] << std::endl;
+                }
+                outputFile.close();
+                
+            } else {
+                print_error("could not open output stops cube (lut) file: ", tool.outputstopscubefile);
+            }
         }
     }
     return 0;
