@@ -37,7 +37,7 @@ Usage
 Print logctool help message with flag ```--help```.
 
 ```shell
-it8tool -- a set of utilities for processing logc encoded images
+logctool -- a set of utilities for processing logc encoded images
 
 Usage: logctool [options] filename...
 
