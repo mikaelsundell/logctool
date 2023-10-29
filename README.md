@@ -8,7 +8,7 @@ Introduction
 
 logctool a set of utilities for processing logc encoded images
 
-![Sample image or figure.](images/image.png 'it8tool')
+![Sample image or figure.](images/image.png 'logctool')
 
 Building
 --------
@@ -18,7 +18,7 @@ The logctool app can be built both from commandline or using optional Xcode `-GX
 ```shell
 mkdir build
 cd build
-cmake .. -DCMAKE_MODULE_PATH=<path>/it8tool/modules -DCMAKE_INSTALL_PREFIX=<path> -DCMAKE_PREFIX_PATH=<path> -GXcode
+cmake .. -DCMAKE_MODULE_PATH=<path>/logctool/modules -DCMAKE_INSTALL_PREFIX=<path> -DCMAKE_PREFIX_PATH=<path> -GXcode
 cmake --build . --config Release -j 8
 ```
 
@@ -56,12 +56,24 @@ Output flags:
     --outputwidth WIDTH                 Output width of log steps
     --outputheight HEIGHT               Output height of log steps
     --outputfalsecolorcubefile FILE     Optional output false color cube (lut) file
-    --outputcalibrationmatrixfile FILE  Output calibration matrix file
     --outputstopscubefile FILE          Optional output stops cube (lut) file
 ```
 
 
 Generate LogC steps in OpenEXR float
+--------
+
+```shell
+./logcotol
+-v
+--outputwidth 2048
+--outputheight 1024
+--dataformat float
+--outpitfilename /Volumes/Build/github/test/logctool_LogC3.exr
+--outputstopscubefile /Volumes/Build/github/test/logctool_LogC3_out.cube
+```
+
+Generate Conversion LUTs in Davinci Resolve
 --------
 
 ```shell
@@ -80,7 +92,7 @@ Packaging
 The `macdeploy.sh` script will deploy mac bundle to dmg including dependencies.
 
 ```shell
-./macdeploy.sh -e <path>/it8tool -d <path> -p <path>
+./macdeploy.sh -e <path>/logctool -d <path> -p <path>
 ```
 
 Dependencies
@@ -96,9 +108,7 @@ Dependencies
 Limitations
 -------------
 
-| Limitation  | Description |
-| ----------- | ----------- |
-| Stop LUTS   | 33 Cube LUTs are apprixmations and will not handle lower -7/-8 due to precision issues
+Cube LUTs are limited in their precision therefore does not handle the toe of the curve very well.
 
 Project
 -------

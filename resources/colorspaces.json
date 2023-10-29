@@ -1,0 +1,10 @@
+{
+    "cineon": {
+        "description": "ARRI LogC3 to Cineon Film Log in Rec709",
+        "filename": "LogC3_to_Cineon.cube"
+    },
+    "sRGB": {
+        "description": "ARRI LogC3 to sRGB in Rec709",
+        "filename": "LogC3_to_sRGB.cube"
+    }
+}
