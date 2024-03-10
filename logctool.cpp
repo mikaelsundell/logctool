@@ -28,7 +28,7 @@ using namespace OIIO;
 
 // opencolorio
 #include <OpenColorIO/OpenColorIO.h>
-using namespace OpenColorIO_v2_2dev;
+using namespace OpenColorIO_v2_3;
 
 // boost
 #include <boost/property_tree/ptree.hpp>

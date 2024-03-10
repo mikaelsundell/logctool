@@ -7,29 +7,21 @@ set( project_name "logctool" )
 
 project( "${project_name} project" )
 
-# modules
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/modules" )
-
 # imath
-find_package( Imath REQUIRED )
-find_package( OIIO REQUIRED )
-find_package( OCIO REQUIRED )
+find_package( Imath CONFIG REQUIRED )
+find_package( OpenImageIO CONFIG REQUIRED )
+find_package( OpenColorIO CONFIG REQUIRED )
 
 # package
 add_executable( ${project_name} "logctool.cpp" )
+target_link_libraries(${project_name}
+    PRIVATE
+        Imath::Imath
+        OpenImageIO::OpenImageIO
+        OpenColorIO::OpenColorIO
+)
+
 set_property(TARGET ${project_name} PROPERTY CXX_STANDARD 14)
-
-include_directories (
-    ${IMATH_INCLUDE_DIRS}
-    ${OIIO_INCLUDE_DIRS}
-    ${OCIO_INCLUDE_DIR}
-)
-
-target_link_libraries( ${project_name}
-    ${IMATH_LIBRARIES}  
-    ${OIIO_LIBRARIES}
-    ${OCIO_LIBRARIES}
-)
 
 add_custom_command(
     TARGET ${project_name}
