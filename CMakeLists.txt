@@ -44,9 +44,9 @@ install(TARGETS ${project_name}
 )
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/fonts
-    DESTINATION fonts
+    DESTINATION bin
 )
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources
-    DESTINATION resources
+    DESTINATION bin
 )
