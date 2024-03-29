@@ -388,7 +388,7 @@ main( int argc, const char * argv[])
     
     // colorspaces
     std::map<std::string, LogCColorspace> colorspaces;
-    std::string jsonfile = resources_path("colorspaces.json");
+    std::string jsonfile = resources_path("logctool.json");
     std::ifstream json(jsonfile);
     if (json.is_open()) {
         ptree pt;
