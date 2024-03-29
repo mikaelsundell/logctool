@@ -648,7 +648,7 @@ main( int argc, const char * argv[])
             float fillheight = height * 0.2;
             float fillcolor[3] = { midlog, midlog, midlog };
             
-            std::string font = "Roboto-Regular.ttf";
+            std::string font = "Roboto.ttf";
             float fontsmall = height * 0.025;
             float fontmedium = height * 0.04;
             float fontlarge = height * 0.08;
