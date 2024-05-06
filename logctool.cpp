@@ -85,6 +85,8 @@ struct LogCTool
     std::string outputfilename;
     std::string outputfalsecolorcubefile;
     std::string outputstopscubefile;
+    bool outputlinear = false;
+    bool outputnolabels = false;
     int code = EXIT_SUCCESS;
 };
 
@@ -310,6 +312,12 @@ main( int argc, const char * argv[])
       .help("Output height of log steps")
       .action(set_height);
     
+    ap.arg("--outputlinear", &tool.outputlinear)
+      .help("Output linear steps");
+    
+    ap.arg("--outputnolabels", &tool.outputnolabels)
+      .help("Output no labels");
+    
     ap.arg("--outputfalsecolorcubefile %s:FILE", &tool.outputfalsecolorcubefile)
       .help("Optional output false color cube (lut) file");
     
@@ -508,7 +516,13 @@ main( int argc, const char * argv[])
     for(int s=0; s<signalsize; s++) {
         int relativestop = s-8;
         float lin = pow(2, relativestop) * midgray;
-        float log = std::min<float>(gamma.lin2log(lin), typelimit);
+        float log = 0.0;
+        
+        if (tool.outputlinear) {
+            log = lin;
+        } else {
+            log = std::min<float>(gamma.lin2log(lin), typelimit);
+        }
         
         if (tool.verbose) {
             print_info(" stop:  ", relativestop);
@@ -591,7 +605,14 @@ main( int argc, const char * argv[])
                     
                     float relativestop = (((float)x / width) * (signalsize - 1)) - 8;
                     float lin = pow(2, relativestop) * midgray;
-                    float log = gamma.lin2log(lin);
+                    float log = 0.0;
+                    
+                    if (tool.outputlinear) {
+                        log = lin;
+                    } else {
+                        log = gamma.lin2log(lin);;
+                    }
+
                     if (tool.colorspace.size()) {
                         float triplet[3] = { log, log, log };
                         {
@@ -644,72 +665,123 @@ main( int argc, const char * argv[])
         
         ImageBuf imageBuf = ImageBuf(spec, imagedata);
         {
-            float fillwidth = width * 0.4;
-            float fillheight = height * 0.2;
-            float fillcolor[3] = { midlog, midlog, midlog };
-            
-            std::string font = "Roboto.ttf";
-            float fontsmall = height * 0.025;
-            float fontmedium = height * 0.04;
-            float fontlarge = height * 0.08;
-            float fontcolor[] = { 1, 1, 1, 1 };
-            
-            float xbegin = (width - fillwidth) / 2.0;
-            float ybegin = (height - fillheight) / 2.0;
-
-            ImageBufAlgo::fill(imageBuf, fillcolor,
-                ROI(
-                    xbegin, width - xbegin, ybegin, height - ybegin
-                )
-            );
-            
-            for (std::pair<int, std::pair<int, float>> stop : stops) {
+            if (!tool.outputnolabels) {
+                float fillwidth = width * 0.4;
+                float fillheight = height * 0.2;
+                float fillcolor[3] = { midlog, midlog, midlog };
                 
-                int x = stop.second.first;
-                float value = stop.second.second;
-  
-                ImageBufAlgo::render_text(imageBuf,
-                    x,
-                    height * 0.04,
-                    std::to_string(stop.first), // relative stop
-                    fontmedium,
-                    font_path(font),
-                    fontcolor,
-                    ImageBufAlgo::TextAlignX::Center,
-                    ImageBufAlgo::TextAlignY::Center
-                );
+                std::string font = "Roboto.ttf";
+                float fontsmall = height * 0.025;
+                float fontmedium = height * 0.04;
+                float fontlarge = height * 0.08;
+                float fontcolor[] = { 1, 1, 1, 1 };
+                
+                float xbegin = (width - fillwidth) / 2.0;
+                float ybegin = (height - fillheight) / 2.0;
 
-                {
-                    std::string code, signal;
-                    if (typedesc.is_floating_point()) {
-                        code = str_by_float(value);
-                        signal = str_by_percent(value);
-                        
-                    } else {
-                        if (is10bit) {
-                            code = str_by_10bit(value);
-                            signal = str_by_percent((float)int_by_10bit(value) / type10bitlimit);
-                        } else {
-                            code = str_by_int(value);
-                            signal = str_by_percent(value / typelimit);
-                        }
-                    }
+                ImageBufAlgo::fill(imageBuf, fillcolor,
+                    ROI(
+                        xbegin, width - xbegin, ybegin, height - ybegin
+                    )
+                );
+                
+                for (std::pair<int, std::pair<int, float>> stop : stops) {
                     
+                    int x = stop.second.first;
+                    float value = stop.second.second;
+      
                     ImageBufAlgo::render_text(imageBuf,
                         x,
-                        height * 0.04 + fontmedium,
-                        code,
-                        fontsmall,
+                        height * 0.04,
+                        std::to_string(stop.first), // relative stop
+                        fontmedium,
                         font_path(font),
                         fontcolor,
                         ImageBufAlgo::TextAlignX::Center,
                         ImageBufAlgo::TextAlignY::Center
                     );
+
+                    {
+                        std::string code, signal;
+                        if (typedesc.is_floating_point()) {
+                            code = str_by_float(value);
+                            signal = str_by_percent(value);
+                            
+                        } else {
+                            if (is10bit) {
+                                code = str_by_10bit(value);
+                                signal = str_by_percent((float)int_by_10bit(value) / type10bitlimit);
+                            } else {
+                                code = str_by_int(value);
+                                signal = str_by_percent(value / typelimit);
+                            }
+                        }
+                        
+                        ImageBufAlgo::render_text(imageBuf,
+                            x,
+                            height * 0.04 + fontmedium,
+                            code,
+                            fontsmall,
+                            font_path(font),
+                            fontcolor,
+                            ImageBufAlgo::TextAlignX::Center,
+                            ImageBufAlgo::TextAlignY::Center
+                        );
+                        
+                        ImageBufAlgo::render_text(imageBuf,
+                            x,
+                            height * 0.04 + fontmedium * 2,
+                            signal,
+                            fontsmall,
+                            font_path(font),
+                            fontcolor,
+                            ImageBufAlgo::TextAlignX::Center,
+                            ImageBufAlgo::TextAlignY::Center
+                        );
+                    }
+                }
+                
+                ImageBufAlgo::render_text(imageBuf,
+                    width / 2.0,
+                    height / 2.0,
+                    "LogC Ø:" +
+                    str_by_float(midgray) +
+                    " EI:" +
+                    str_by_int(tool.ei),
+                    fontlarge,
+                    font_path(font),
+                    fontcolor,
+                    ImageBufAlgo::TextAlignX::Center,
+                    ImageBufAlgo::TextAlignY::Center
+                );
+                
+                ImageBufAlgo::render_text(imageBuf,
+                    width * 0.02,
+                    height - height * 0.04,
+                    "Logctool " +
+                    datetime() +
+                    " " +
+                    Filesystem::filename(tool.outputfilename) +
+                    " (" +
+                    tool.dataformat +
+                    " " +
+                    std::to_string(spec.width) +
+                    "x" +
+                    std::to_string(spec.height) +
+                    ")",
+                    fontsmall,
+                    font_path(font),
+                    fontcolor,
+                    ImageBufAlgo::TextAlignX::Left,
+                    ImageBufAlgo::TextAlignY::Center
+                );
+                
+                if (tool.colorspace.size()) {
                     
                     ImageBufAlgo::render_text(imageBuf,
-                        x,
-                        height * 0.04 + fontmedium * 2,
-                        signal,
+                        width / 2.0,
+                        height / 2.0 + fontlarge,
+                        "Colorspace: " + tool.colorspace,
                         fontsmall,
                         font_path(font),
                         fontcolor,
@@ -717,55 +789,6 @@ main( int argc, const char * argv[])
                         ImageBufAlgo::TextAlignY::Center
                     );
                 }
-            }
-            
-            ImageBufAlgo::render_text(imageBuf,
-                width / 2.0,
-                height / 2.0,
-                "LogC Ø:" +
-                str_by_float(midgray) +
-                " EI:" +
-                str_by_int(tool.ei),
-                fontlarge,
-                font_path(font),
-                fontcolor,
-                ImageBufAlgo::TextAlignX::Center,
-                ImageBufAlgo::TextAlignY::Center
-            );
-            
-            ImageBufAlgo::render_text(imageBuf,
-                width * 0.02,
-                height - height * 0.04,
-                "Logctool " +
-                datetime() +
-                " " +
-                Filesystem::filename(tool.outputfilename) +
-                " (" +
-                tool.dataformat +
-                " " +
-                std::to_string(spec.width) +
-                "x" +
-                std::to_string(spec.height) +
-                ")",
-                fontsmall,
-                font_path(font),
-                fontcolor,
-                ImageBufAlgo::TextAlignX::Left,
-                ImageBufAlgo::TextAlignY::Center
-            );
-            
-            if (tool.colorspace.size()) {
-                
-                ImageBufAlgo::render_text(imageBuf,
-                    width / 2.0,
-                    height / 2.0 + fontlarge,
-                    "Colorspace: " + tool.colorspace,
-                    fontsmall,
-                    font_path(font),
-                    fontcolor,
-                    ImageBufAlgo::TextAlignX::Center,
-                    ImageBufAlgo::TextAlignY::Center
-                );
             }
         }
         
