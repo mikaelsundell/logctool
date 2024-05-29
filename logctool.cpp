@@ -75,6 +75,7 @@ struct LogCTool
 {
     bool help = false;
     bool verbose = false;
+    bool colorspaces = false;
     int ei = 800;
     int width = 1024;
     int height = 512;
@@ -287,6 +288,9 @@ main( int argc, const char * argv[])
     ap.arg("-v", &tool.verbose)
       .help("Verbose status messages");
     
+    ap.arg("--colorspaces", &tool.colorspaces)
+      .help("List all color spaces");
+    
     ap.arg("--ei %d:EI")
       .help("LogC exposure index")
       .action(set_ei);
@@ -336,63 +340,35 @@ main( int argc, const char * argv[])
         ap.abort();
         return EXIT_SUCCESS;
     }
-    if (!tool.ei) {
-        print_error("missing parameter: ", "ei");
-        ap.briefusage();
-        ap.abort();
-        return EXIT_FAILURE;
-    }
-    if (!tool.dataformat.size()) {
-        print_error("missing parameter: ", "dataformat");
-        ap.briefusage();
-        ap.abort();
-        return EXIT_FAILURE;
-    }
-    if (!tool.outputfilename.size()) {
-        print_error("missing parameter: ", "outputfilename");
-        ap.briefusage();
-        ap.abort();
-        return EXIT_FAILURE;
-    }
-    if (argc <= 1) {
-        ap.briefusage();
-        print_error("For detailed help: logctool --help");
-        return EXIT_FAILURE;
+    
+    if (!tool.colorspaces) {
+        if (!tool.ei) {
+            print_error("missing parameter: ", "ei");
+            ap.briefusage();
+            ap.abort();
+            return EXIT_FAILURE;
+        }
+        if (!tool.dataformat.size()) {
+            print_error("missing parameter: ", "dataformat");
+            ap.briefusage();
+            ap.abort();
+            return EXIT_FAILURE;
+        }
+        if (!tool.outputfilename.size()) {
+            print_error("missing parameter: ", "outputfilename");
+            ap.briefusage();
+            ap.abort();
+            return EXIT_FAILURE;
+        }
+        if (argc <= 1) {
+            ap.briefusage();
+            print_error("For detailed help: logctool --help");
+            return EXIT_FAILURE;
+        }
     }
     
     // logc program
     print_info("logctool -- a set of utilities for processing logc encoded images");
-    
-    // logc midgray
-    float midgray = 0.18f;
-    float midvalue = 0.0;
-    float midlog = 0.0;
-    
-    // logc gammas
-    LogCGamma gamma;
-    std::vector<LogCGamma> gammas =
-    {
-        //              ei    cut       a         b         c         d         e         f
-        LogCGamma() = { 160,  0.005561, 5.555556, 0.080216, 0.269036, 0.381991, 5.842037, 0.092778 },
-        LogCGamma() = { 200,  0.006208, 5.555556, 0.076621, 0.266007, 0.382478, 5.776265, 0.092782 },
-        LogCGamma() = { 250,  0.006871, 5.555556, 0.072941, 0.262978, 0.382966, 5.710494, 0.092786 },
-        LogCGamma() = { 320,  0.007622, 5.555556, 0.068768, 0.259627, 0.383508, 5.637732, 0.092791 },
-        LogCGamma() = { 400,  0.008318, 5.555556, 0.064901, 0.256598, 0.383999, 5.571960, 0.092795 },
-        LogCGamma() = { 500,  0.009031, 5.555556, 0.060939, 0.253569, 0.384493, 5.506188, 0.092800 },
-        LogCGamma() = { 640,  0.009840, 5.555556, 0.056443, 0.250219, 0.385040, 5.433426, 0.092805 },
-        //              800   default gamma
-        LogCGamma() = { 800,  0.010591, 5.555556, 0.052272, 0.247190, 0.385537, 5.367655, 0.092809 },
-        LogCGamma() = { 1000, 0.011361, 5.555556, 0.047996, 0.244161, 0.386036, 5.301883, 0.092814 },
-        LogCGamma() = { 1280, 0.012235, 5.555556, 0.043137, 0.240810, 0.386590, 5.229121, 0.092819 },
-        LogCGamma() = { 1600, 0.013047, 5.555556, 0.038625, 0.237781, 0.387093, 5.163350, 0.092824 }
-    };
-    for(LogCGamma logcgamma : gammas)
-    {
-        if (tool.ei == logcgamma.ei) {
-            gamma = logcgamma;
-            break;
-        }
-    }
     
     // colorspaces
     std::map<std::string, LogCColorspace> colorspaces;
@@ -423,11 +399,49 @@ main( int argc, const char * argv[])
         return EXIT_FAILURE;
     }
     
+    if (tool.colorspaces) {
+        print_info("Colorspaces:");
+        for (const std::pair<std::string, LogCColorspace>& pair : colorspaces) {
+            print_info("    ", pair.first);
+        }
+        return EXIT_SUCCESS;
+    }
+    
     if (tool.colorspace.size()) {
         if (!colorspaces.count(tool.colorspace)) {
             print_error("unknown colorspace: ", tool.colorspace);
             ap.abort();
             return EXIT_FAILURE;
+        }
+    }
+    
+    // logc midgray
+    float midgray = 0.18f;
+    float midlog = 0.0;
+    
+    // logc gammas
+    LogCGamma gamma;
+    std::vector<LogCGamma> gammas =
+    {
+        //              ei    cut       a         b         c         d         e         f
+        LogCGamma() = { 160,  0.005561, 5.555556, 0.080216, 0.269036, 0.381991, 5.842037, 0.092778 },
+        LogCGamma() = { 200,  0.006208, 5.555556, 0.076621, 0.266007, 0.382478, 5.776265, 0.092782 },
+        LogCGamma() = { 250,  0.006871, 5.555556, 0.072941, 0.262978, 0.382966, 5.710494, 0.092786 },
+        LogCGamma() = { 320,  0.007622, 5.555556, 0.068768, 0.259627, 0.383508, 5.637732, 0.092791 },
+        LogCGamma() = { 400,  0.008318, 5.555556, 0.064901, 0.256598, 0.383999, 5.571960, 0.092795 },
+        LogCGamma() = { 500,  0.009031, 5.555556, 0.060939, 0.253569, 0.384493, 5.506188, 0.092800 },
+        LogCGamma() = { 640,  0.009840, 5.555556, 0.056443, 0.250219, 0.385040, 5.433426, 0.092805 },
+        //              800   default gamma
+        LogCGamma() = { 800,  0.010591, 5.555556, 0.052272, 0.247190, 0.385537, 5.367655, 0.092809 },
+        LogCGamma() = { 1000, 0.011361, 5.555556, 0.047996, 0.244161, 0.386036, 5.301883, 0.092814 },
+        LogCGamma() = { 1280, 0.012235, 5.555556, 0.043137, 0.240810, 0.386590, 5.229121, 0.092819 },
+        LogCGamma() = { 1600, 0.013047, 5.555556, 0.038625, 0.237781, 0.387093, 5.163350, 0.092824 }
+    };
+    for(LogCGamma logcgamma : gammas)
+    {
+        if (tool.ei == logcgamma.ei) {
+            gamma = logcgamma;
+            break;
         }
     }
     
@@ -544,7 +558,6 @@ main( int argc, const char * argv[])
         if (typedesc.is_floating_point()) {
             memcpy((char*)signaldata + typesize*s, &log, typesize);
             if (relativestop == 0) {
-                midvalue = log;
                 midlog = log;
             }
             if (tool.verbose) {
@@ -555,11 +568,6 @@ main( int argc, const char * argv[])
             int value = round(typelimit * log);
             memcpy((char*)signaldata + typesize*s, &value, typesize);
             if (relativestop == 0) {
-                if (is10bit) {
-                    midvalue = round(type10bitlimit * log);
-                } else {
-                    midvalue = value;
-                }
                 midlog = log;
             }
             if (tool.verbose) {
@@ -570,6 +578,8 @@ main( int argc, const char * argv[])
                 }
             }
         }
+        
+        
     }
     if (tool.outputfilename.size()) {
         
@@ -612,7 +622,7 @@ main( int argc, const char * argv[])
                     } else {
                         log = gamma.lin2log(lin);;
                     }
-
+                    
                     if (tool.colorspace.size()) {
                         float triplet[3] = { log, log, log };
                         {
@@ -620,7 +630,7 @@ main( int argc, const char * argv[])
                             log = triplet[0];
                         }
                     }
-                    
+
                     if (typedesc.is_floating_point()) {
                         memcpy(pixeldata, &log, typesize);
                     } else {
@@ -634,6 +644,7 @@ main( int argc, const char * argv[])
                         
                         int stop = std::min<int>(signalsize - 1, stopcount);
                         int relativestop = stop-8;
+
                         // data
                         memcpy(pixeldata, (char*)signaldata + typesize*stop, typesize);
                         if (stops.find(relativestop) == stops.end()) {
@@ -782,7 +793,7 @@ main( int argc, const char * argv[])
                         width / 2.0,
                         height / 2.0 + fontlarge,
                         "Colorspace: " + tool.colorspace,
-                        fontsmall,
+                        fontmedium * 0.8,
                         font_path(font),
                         fontcolor,
                         ImageBufAlgo::TextAlignX::Center,

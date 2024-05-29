@@ -1,7 +1,43 @@
 {
-    "cineon": {
+    "CanonLog": {
+        "description": "ARRI LogC3 to CanonLog",
+        "filename": "LogC3_to_CanonLog.cube"
+    },
+    "CanonLog2": {
+        "description": "ARRI LogC3 to CanonLog2",
+        "filename": "LogC3_to_CanonLog2.cube"
+    },
+    "CanonLog3": {
+        "description": "ARRI LogC3 to CanonLog3",
+        "filename": "LogC3_to_CanonLog3.cube"
+    },
+    "Cineon": {
         "description": "ARRI LogC3 to Cineon Film Log in Rec709",
         "filename": "LogC3_to_Cineon.cube"
+    },
+    "Rec709": {
+        "description": "ARRI LogC3 to Rec709",
+        "filename": "LogC3_to_Rec709.cube"
+    },
+    "REDgamma3": {
+        "description": "ARRI LogC3 to REDgamma3",
+        "filename": "LogC3_to_REDgamma3.cube"
+    },
+    "REDgamma4": {
+        "description": "ARRI LogC3 to REDgamma4",
+        "filename": "LogC3_to_REDgamma4.cube"
+    },
+    "SonySLog1": {
+        "description": "ARRI LogC3 to SonySLog1",
+        "filename": "LogC3_to_SonySLog1.cube"
+    },
+    "SonySLog2": {
+        "description": "ARRI LogC3 to SonySLog2",
+        "filename": "LogC3_to_SonySLog2.cube"
+    },
+    "SonySLog3": {
+        "description": "ARRI LogC3 to SonySLog3",
+        "filename": "LogC3_to_SonySLog2.cube"
     },
     "sRGB": {
         "description": "ARRI LogC3 to sRGB in Rec709",
