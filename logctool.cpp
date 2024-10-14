@@ -190,61 +190,45 @@ std::string resources_path(const std::string& resource)
 }
 
 // utils - colorspaces
-
-// utils - color spaces
 Imath::Vec3<float> mult_from_matrix(const Imath::Vec3<float>& src, const Imath::Matrix33<float>& matrix) {
     return src * matrix.transposed(); // imath row-order from column-order convention
 }
 
 Imath::Vec3<float> ciexyzd65_from_lab(const Imath::Vec3<float>& src) {
-    // D65 reference white values
     const double Xn = 0.95047;
     const double Yn = 1.00000;
     const double Zn = 1.08883;
-
     double fy = (src.x + 16.0) / 116.0;
     double fx = fy + (src.y / 500.0);
     double fz = fy - (src.z / 200.0);
-
     double fx3 = std::pow(fx, 3.0);
     double fz3 = std::pow(fz, 3.0);
-
     float X = (fx3 > 0.008856) ? fx3 : ((fx - 16.0 / 116.0) / 7.787);
     float Y = (src.x > 0.008856) ? std::pow(((src.x + 16.0) / 116.0), 3.0) : (src.x / 903.3);
     float Z = (fz3 > 0.008856) ? fz3 : ((fz - 16.0 / 116.0) / 7.787);
-
     X *= Xn;
     Y *= Yn;
     Z *= Zn;
-    
     return Imath::Vec3<float>(X, Y, Z);
 }
 
-
 Imath::Vec3<float> ciexyzd50_from_lab(const Imath::Vec3<float>& src) {
-    // D50 reference white values
     const double Xn = 0.9642;
     const double Yn = 1.00000;
     const double Zn = 0.8251;
-
     double fy = (src.x + 16.0) / 116.0;
     double fx = fy + (src.y / 500.0);
     double fz = fy - (src.z / 200.0);
-
     double fx3 = std::pow(fx, 3.0);
     double fz3 = std::pow(fz, 3.0);
-
     float X = (fx3 > 0.008856) ? fx3 : ((fx - 16.0 / 116.0) / 7.787);
     float Y = (src.x > 8.0) ? std::pow(((src.x + 16.0) / 116.0), 3.0) : (src.x / 903.3);
     float Z = (fz3 > 0.008856) ? fz3 : ((fz - 16.0 / 116.0) / 7.787);
-
     X *= Xn;
     Y *= Yn;
     Z *= Zn;
-    
     return Imath::Vec3<float>(X, Y, Z);
 }
-
 
 Imath::Vec3<float> ciexyzd65_from_D50(const Imath::Vec3<float>& src) {
     
@@ -256,9 +240,8 @@ Imath::Vec3<float> ciexyzd65_from_D50(const Imath::Vec3<float>& src) {
     return mult_from_matrix(src, matrix);
 }
 
-
-// logc3 gamma
-struct LogC3Gamma
+// logc3 colorspace
+struct LogC3Colorspace
 {
     int ei;
     float cut;
@@ -474,43 +457,43 @@ main( int argc, const char * argv[])
     float midgray = 0.18f;
     float midlog = 0.0;
     
-    // logc gammas
-    LogC3Gamma gamma;
-    std::vector<LogC3Gamma> gammas =
+    // logc colorspace
+    LogC3Colorspace colorspace;
+    std::vector<LogC3Colorspace> colorspaces =
     {
         //              ei    cut       a         b         c         d         e         f
-        LogC3Gamma() = { 160,  0.005561, 5.555556, 0.080216, 0.269036, 0.381991, 5.842037, 0.092778 },
-        LogC3Gamma() = { 200,  0.006208, 5.555556, 0.076621, 0.266007, 0.382478, 5.776265, 0.092782 },
-        LogC3Gamma() = { 250,  0.006871, 5.555556, 0.072941, 0.262978, 0.382966, 5.710494, 0.092786 },
-        LogC3Gamma() = { 320,  0.007622, 5.555556, 0.068768, 0.259627, 0.383508, 5.637732, 0.092791 },
-        LogC3Gamma() = { 400,  0.008318, 5.555556, 0.064901, 0.256598, 0.383999, 5.571960, 0.092795 },
-        LogC3Gamma() = { 500,  0.009031, 5.555556, 0.060939, 0.253569, 0.384493, 5.506188, 0.092800 },
-        LogC3Gamma() = { 640,  0.009840, 5.555556, 0.056443, 0.250219, 0.385040, 5.433426, 0.092805 },
+        LogC3Colorspace() = { 160,  0.005561, 5.555556, 0.080216, 0.269036, 0.381991, 5.842037, 0.092778 },
+        LogC3Colorspace() = { 200,  0.006208, 5.555556, 0.076621, 0.266007, 0.382478, 5.776265, 0.092782 },
+        LogC3Colorspace() = { 250,  0.006871, 5.555556, 0.072941, 0.262978, 0.382966, 5.710494, 0.092786 },
+        LogC3Colorspace() = { 320,  0.007622, 5.555556, 0.068768, 0.259627, 0.383508, 5.637732, 0.092791 },
+        LogC3Colorspace() = { 400,  0.008318, 5.555556, 0.064901, 0.256598, 0.383999, 5.571960, 0.092795 },
+        LogC3Colorspace() = { 500,  0.009031, 5.555556, 0.060939, 0.253569, 0.384493, 5.506188, 0.092800 },
+        LogC3Colorspace() = { 640,  0.009840, 5.555556, 0.056443, 0.250219, 0.385040, 5.433426, 0.092805 },
         //              800   default gamma
-        LogC3Gamma() = { 800,  0.010591, 5.555556, 0.052272, 0.247190, 0.385537, 5.367655, 0.092809 },
-        LogC3Gamma() = { 1000, 0.011361, 5.555556, 0.047996, 0.244161, 0.386036, 5.301883, 0.092814 },
-        LogC3Gamma() = { 1280, 0.012235, 5.555556, 0.043137, 0.240810, 0.386590, 5.229121, 0.092819 },
-        LogC3Gamma() = { 1600, 0.013047, 5.555556, 0.038625, 0.237781, 0.387093, 5.163350, 0.092824 }
+        LogC3Colorspace() = { 800,  0.010591, 5.555556, 0.052272, 0.247190, 0.385537, 5.367655, 0.092809 },
+        LogC3Colorspace() = { 1000, 0.011361, 5.555556, 0.047996, 0.244161, 0.386036, 5.301883, 0.092814 },
+        LogC3Colorspace() = { 1280, 0.012235, 5.555556, 0.043137, 0.240810, 0.386590, 5.229121, 0.092819 },
+        LogC3Colorspace() = { 1600, 0.013047, 5.555556, 0.038625, 0.237781, 0.387093, 5.163350, 0.092824 }
     };
-    for(LogC3Gamma logcgamma : gammas) {
-        if (tool.ei == logcgamma.ei) {
-            gamma = logcgamma;
+    for(LogC3Colorspace logccolorspace : colorspaces) {
+        if (tool.ei == logccolorspace.ei) {
+            colorspace = logccolorspace;
             break;
         }
     }
     
     // image data
     print_info("image data");
-    if (gamma.ei > 0) {
-        print_info("ei: ", gamma.ei);
+    if (colorspace.ei > 0) {
+        print_info("ei: ", colorspace.ei);
         if (tool.verbose) {
-            print_info("cut: ", gamma.cut);
-            print_info("a: ", gamma.a);
-            print_info("b: ", gamma.b);
-            print_info("c: ", gamma.c);
-            print_info("d: ", gamma.d);
-            print_info("e: ", gamma.e);
-            print_info("f: ", gamma.f);
+            print_info("cut: ", colorspace.cut);
+            print_info("a: ", colorspace.a);
+            print_info("b: ", colorspace.b);
+            print_info("c: ", colorspace.c);
+            print_info("d: ", colorspace.d);
+            print_info("e: ", colorspace.e);
+            print_info("f: ", colorspace.f);
         }
     }
     else {
@@ -613,7 +596,7 @@ main( int argc, const char * argv[])
             if (tool.outputlinear) {
                 log = lin;
             } else {
-                log = std::min<float>(gamma.lin2log(lin), typelimit);
+                log = std::min<float>(colorspace.lin2log(lin), typelimit);
             }
             
             if (tool.verbose) {
@@ -675,7 +658,7 @@ main( int argc, const char * argv[])
                         if (tool.outputlinear) {
                             log = lin;
                         } else {
-                            log = gamma.lin2log(lin);;
+                            log = colorspace.lin2log(lin);;
                         }
                         if (tool.transform.size()) {
                             float rgb[3] = { log, log, log };
@@ -948,9 +931,9 @@ main( int argc, const char * argv[])
                     Imath::Vec3<float> xyz =
                         ciexyzd65_from_D50(ciexyzd50_from_lab(Imath::Vec3<float>(d50_l, d50_a, d50_b)));
 
-                    Imath::Vec3<float> awg = gamma.ciexyz_awg(xyz);
+                    Imath::Vec3<float> awg = colorspace.ciexyz_awg(xyz);
                     Imath::Vec3<float> log = Imath::Vec3<float>(
-                        gamma.lin2log(awg.x),  gamma.lin2log(awg.y),  gamma.lin2log(awg.z)
+                        colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
                     );
                     
                     if (tool.transform.size()) {
@@ -999,9 +982,9 @@ main( int argc, const char * argv[])
                 Imath::Vec3<float> xyz =
                     ciexyzd65_from_D50(ciexyzd50_from_lab(Imath::Vec3<float>(d50_l, d50_a, d50_b)));
 
-                Imath::Vec3<float> awg = gamma.ciexyz_awg(xyz);
+                Imath::Vec3<float> awg = colorspace.ciexyz_awg(xyz);
                 Imath::Vec3<float> log = Imath::Vec3<float>(
-                    gamma.lin2log(awg.x),  gamma.lin2log(awg.y),  gamma.lin2log(awg.z)
+                    colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
                 );
                 
                 if (tool.transform.size()) {
@@ -1130,7 +1113,7 @@ main( int argc, const char * argv[])
         
         for (Imath::Vec4<float>& color : colors) {
             float lin = pow(2, color[0]+0.5f) * midgray;
-            float log = std::min<float>(gamma.lin2log(lin), 1.0f);
+            float log = std::min<float>(colorspace.lin2log(lin), 1.0f);
             if (tool.transform.size()) {
                 float rgb[3] = { log, log, log };
                 transformProcessor->applyRGB(rgb);
@@ -1230,7 +1213,7 @@ main( int argc, const char * argv[])
         
         for (Imath::Vec4<float>& color : colors) {
             float lin = pow(2, color[0]+0.5f) * midgray;
-            float log = std::min<float>(gamma.lin2log(lin), 1.0f);
+            float log = std::min<float>(colorspace.lin2log(lin), 1.0f);
             if (tool.transform.size()) {
                 float rgb[3] = { log, log, log };
                 transformProcessor->applyRGB(rgb);
