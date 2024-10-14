@@ -1,20 +1,4 @@
 {
-    "50D": {
-        "description": "ARRI LogC3 to 50D",
-        "filename": "LogC3_to_50D.cube"
-    },
-    "200T": {
-        "description": "ARRI LogC3 to 200T",
-        "filename": "LogC3_to_200T.cube"
-    },
-    "250D": {
-        "description": "ARRI LogC3 to 250D",
-        "filename": "LogC3_to_250D.cube"
-    },
-    "500T": {
-        "description": "ARRI LogC3 to 500T",
-        "filename": "LogC3_to_500T.cube"
-    },
     "CanonLog": {
         "description": "ARRI LogC3 to CanonLog",
         "filename": "LogC3_to_CanonLog.cube"
