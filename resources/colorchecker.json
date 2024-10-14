@@ -1,0 +1,434 @@
+{
+    "1": {
+      "number": "dark skin",
+      "sRGB": {
+        "R": 115,
+        "G": 82,
+        "B": 68
+      },
+      "CIE L*a*b*": {
+        "L*": 37.986,
+        "a*": 13.555,
+        "b*": 14.059
+      },
+      "Munsell Notation": {
+        "Hue": "3 YR",
+        "Value": 3.7,
+        "Chroma": 3.2
+      }
+    },
+    "2": {
+      "number": "light skin",
+      "sRGB": {
+        "R": 194,
+        "G": 150,
+        "B": 130
+      },
+      "CIE L*a*b*": {
+        "L*": 65.711,
+        "a*": 18.13,
+        "b*": 17.81
+      },
+      "Munsell Notation": {
+        "Hue": "2.2 YR",
+        "Value": 6.4,
+        "Chroma": 4.1
+      }
+    },
+    "3": {
+      "number": "blue sky",
+      "sRGB": {
+        "R": 98,
+        "G": 122,
+        "B": 157
+      },
+      "CIE L*a*b*": {
+        "L*": 49.927,
+        "a*": -4.88,
+        "b*": -21.925
+      },
+      "Munsell Notation": {
+        "Hue": "4.9 PB",
+        "Value": 4.95,
+        "Chroma": 5.5
+      }
+    },
+    "4": {
+      "number": "foliage",
+      "sRGB": {
+        "R": 87,
+        "G": 108,
+        "B": 67
+      },
+      "CIE L*a*b*": {
+        "L*": 43.139,
+        "a*": -13.095,
+        "b*": 21.905
+      },
+      "Munsell Notation": {
+        "Hue": "6.7 GY",
+        "Value": 4.2,
+        "Chroma": 4.5
+      }
+    },
+    "5": {
+      "number": "blue flower",
+      "sRGB": {
+        "R": 133,
+        "G": 128,
+        "B": 177
+      },
+      "CIE L*a*b*": {
+        "L*": 55.112,
+        "a*": 8.844,
+        "b*": -25.399
+      },
+      "Munsell Notation": {
+        "Hue": "9.7 PB",
+        "Value": 5.47,
+        "Chroma": 6.7
+      }
+    },
+    "6": {
+      "number": "bluish green",
+      "sRGB": {
+        "R": 103,
+        "G": 189,
+        "B": 170
+      },
+      "CIE L*a*b*": {
+        "L*": 70.719,
+        "a*": -33.397,
+        "b*": -0.199
+      },
+      "Munsell Notation": {
+        "Hue": "2.5 BG",
+        "Value": 7.0,
+        "Chroma": 1.61
+      }
+    },
+    "7": {
+      "number": "orange",
+      "sRGB": {
+        "R": 214,
+        "G": 126,
+        "B": 44
+      },
+      "CIE L*a*b*": {
+        "L*": 62.661,
+        "a*": 36.067,
+        "b*": 57.096
+      },
+      "Munsell Notation": {
+        "Hue": "5 YR",
+        "Value": 6.0,
+        "Chroma": 11.0
+      }
+    },
+    "8": {
+      "number": "purplish blue",
+      "sRGB": {
+        "R": 80,
+        "G": 91,
+        "B": 166
+      },
+      "CIE L*a*b*": {
+        "L*": 40.562,
+        "a*": 10.41,
+        "b*": -45.964
+      },
+      "Munsell Notation": {
+        "Hue": "7.5 PB",
+        "Value": 4.0,
+        "Chroma": 10.7
+      }
+    },
+    "9": {
+      "number": "moderate red",
+      "sRGB": {
+        "R": 193,
+        "G": 90,
+        "B": 99
+      },
+      "CIE L*a*b*": {
+        "L*": 51.124,
+        "a*": 48.239,
+        "b*": 16.248
+      },
+      "Munsell Notation": {
+        "Hue": "2.5 R",
+        "Value": 5.0,
+        "Chroma": 10.0
+      }
+    },
+    "10": {
+      "number": "purple",
+      "sRGB": {
+        "R": 94,
+        "G": 60,
+        "B": 108
+      },
+      "CIE L*a*b*": {
+        "L*": 30.325,
+        "a*": 22.976,
+        "b*": -21.587
+      },
+      "Munsell Notation": {
+        "Hue": "5 P",
+        "Value": 3.0,
+        "Chroma": 7.0
+      }
+    },
+    "11": {
+      "number": "yellow green",
+      "sRGB": {
+        "R": 157,
+        "G": 188,
+        "B": 64
+      },
+      "CIE L*a*b*": {
+        "L*": 72.532,
+        "a*": -23.709,
+        "b*": 57.255
+      },
+      "Munsell Notation": {
+        "Hue": "5 GY",
+        "Value": 7.1,
+        "Chroma": 9.1
+      }
+    },
+    "12": {
+      "number": "orange yellow",
+      "sRGB": {
+        "R": 224,
+        "G": 163,
+        "B": 46
+      },
+      "CIE L*a*b*": {
+        "L*": 71.941,
+        "a*": 19.363,
+        "b*": 67.857
+      },
+      "Munsell Notation": {
+        "Hue": "7.5 YR",
+        "Value": 7.0,
+        "Chroma": 10.5
+      }
+    },
+    "13": {
+      "number": "blue",
+      "sRGB": {
+        "R": 56,
+        "G": 61,
+        "B": 150
+      },
+      "CIE L*a*b*": {
+        "L*": 28.778,
+        "a*": 14.179,
+        "b*": -50.297
+      },
+      "Munsell Notation": {
+        "Hue": "7.5 PB",
+        "Value": 2.9,
+        "Chroma": 12.7
+      }
+    },
+    "14": {
+      "number": "green",
+      "sRGB": {
+        "R": 70,
+        "G": 148,
+        "B": 73
+      },
+      "CIE L*a*b*": {
+        "L*": 55.261,
+        "a*": -38.342,
+        "b*": 31.37
+      },
+      "Munsell Notation": {
+        "Hue": "0.25 G",
+        "Value": 5.4,
+        "Chroma": 8.65
+      }
+    },
+    "15": {
+      "number": "red",
+      "sRGB": {
+        "R": 175,
+        "G": 54,
+        "B": 60
+      },
+      "CIE L*a*b*": {
+        "L*": 42.101,
+        "a*": 53.378,
+        "b*": 28.19
+      },
+      "Munsell Notation": {
+        "Hue": "5 R",
+        "Value": 4.0,
+        "Chroma": 12.0
+      }
+    },
+    "16": {
+      "number": "yellow",
+      "sRGB": {
+        "R": 231,
+        "G": 199,
+        "B": 31
+      },
+      "CIE L*a*b*": {
+        "L*": 81.733,
+        "a*": 4.039,
+        "b*": 79.819
+      },
+      "Munsell Notation": {
+        "Hue": "5 Y",
+        "Value": 8.0,
+        "Chroma": 11.1
+      }
+    },
+    "17": {
+      "number": "magenta",
+      "sRGB": {
+        "R": 187,
+        "G": 86,
+        "B": 149
+      },
+      "CIE L*a*b*": {
+        "L*": 51.935,
+        "a*": 49.986,
+        "b*": -14.574
+      },
+      "Munsell Notation": {
+        "Hue": "2.5 RP",
+        "Value": 5.0,
+        "Chroma": 12.0
+      }
+    },
+    "18": {
+      "number": "cyan",
+      "sRGB": {
+        "R": 8,
+        "G": 133,
+        "B": 161
+      },
+      "CIE L*a*b*": {
+        "L*": 51.038,
+        "a*": -28.631,
+        "b*": -28.638
+      },
+      "Munsell Notation": {
+        "Hue": "5 B",
+        "Value": 5.0,
+        "Chroma": 8.0
+      }
+    },
+    "19": {
+      "number": "white (.05*)",
+      "sRGB": {
+        "R": 243,
+        "G": 243,
+        "B": 242
+      },
+      "CIE L*a*b*": {
+        "L*": 96.539,
+        "a*": -0.425,
+        "b*": 1.186
+      },
+      "Munsell Notation": {
+        "Hue": "N",
+        "Value": 9.5,
+        "Chroma": null
+      }
+    },
+    "20": {
+      "number": "neutral 8 (.23*)",
+      "sRGB": {
+        "R": 200,
+        "G": 200,
+        "B": 200
+      },
+      "CIE L*a*b*": {
+        "L*": 81.257,
+        "a*": -0.638,
+        "b*": -0.335
+      },
+      "Munsell Notation": {
+        "Hue": "N",
+        "Value": 8.0,
+        "Chroma": null
+      }
+    },
+    "21": {
+      "number": "neutral 6.5 (.44*)",
+      "sRGB": {
+        "R": 160,
+        "G": 160,
+        "B": 160
+      },
+      "CIE L*a*b*": {
+        "L*": 66.766,
+        "a*": -0.734,
+        "b*": -0.504
+      },
+      "Munsell Notation": {
+        "Hue": "N",
+        "Value": 6.5,
+        "Chroma": null
+      }
+    },
+    "22": {
+      "number": "neutral 5 (.70*)",
+      "sRGB": {
+        "R": 122,
+        "G": 122,
+        "B": 121
+      },
+      "CIE L*a*b*": {
+        "L*": 50.867,
+        "a*": -0.153,
+        "b*": 0.07
+      },
+      "Munsell Notation": {
+        "Hue": "N",
+        "Value": 5.0,
+        "Chroma": null
+      }
+    },
+    "23": {
+      "number": "neutral 3.5 (.05*)",
+      "sRGB": {
+        "R": 85,
+        "G": 85,
+        "B": 85
+      },
+      "CIE L*a*b*": {
+        "L*": 35.661,
+        "a*": -0.421,
+        "b*": -1.231
+      },
+      "Munsell Notation": {
+        "Hue": "N",
+        "Value": 3.5,
+        "Chroma": null
+      }
+    },
+    "24": {
+      "number": "black (1.50*)",
+      "sRGB": {
+        "R": 52,
+        "G": 52,
+        "B": 52
+      },
+      "CIE L*a*b*": {
+        "L*": 20.461,
+        "a*": -0.079,
+        "b*": -0.973
+      },
+      "Munsell Notation": {
+        "Hue": "N",
+        "Value": 2.0,
+        "Chroma": null
+      }
+    }
+}

@@ -6,9 +6,79 @@ Readme for logctool
 Introduction
 ------------
 
-logctool a set of utilities for processing logc encoded images
+logctool a set of utilities for processing logc encoded images. Test and verification data, including a step chart and color checker grid, can be generated for color space evaluation and testing.
 
 ![Sample image or figure.](images/image.png 'logctool')
+
+Examples of stepchart and colorchecker using --transform sRGB for viewing.
+
+Usage
+-----
+
+Print logctool help message with flag ```--help```.
+
+```shell
+logctool -- a set of utilities for processing logc encoded images
+
+Usage: logctool [options] filename...
+
+General flags:
+    --help                           Print help message
+    -v                               Verbose status messages
+    --transforms                     List all transforms
+    --ei EI                          LogC exposure index
+    --dataformat DATAFORMAT          LogC format (default: float, uint8, uint10, uint16 and uint32)
+    --transform TRANSFORM            LUT transform
+Output flags:
+    --outputtype OUTTYPE             Output type (default: stepchart, colorchecker)
+    --outputfilename OUTFILENAME     Output filename of log steps
+    --outputwidth WIDTH              Output width of log steps
+    --outputheight HEIGHT            Output height of log steps
+    --outputlinear                   Output linear steps
+    --outputnolabels                 Output no labels
+    --outputfalsecolorcubefile FILE  Optional output false color cube (lut) file
+    --outputstopscubefile FILE       Optional output stops cube (lut) file
+```
+
+
+Generate LogC stepchart in OpenEXR float
+--------
+
+```shell
+./logcotol
+-v
+--outputwidth 2048
+--outputheight 1024
+--dataformat float
+--outputtype stepchart
+--outpitfilename /Volumes/Build/github/test/logctool_LogC3.exr
+```
+
+Generate LogC colorchecker in DPX 10-bit
+--------
+
+```shell
+./logcotol
+-v
+--outputwidth 2048
+--outputheight 1024
+--dataformat uin10
+--outputtype colorchecker
+--outputfilename /Volumes/Build/github/test/logctool_LogC3.exr
+```
+
+Generate Conversion LUTs in Davinci Resolve
+--------
+
+```shell
+./logcotol
+-v
+--outputwidth 2048
+--outputheight 1024
+--dataformat float
+--outpitfilename /Volumes/Build/github/test/logctool_LogC3.exr
+--outputstopscubefile /Volumes/Build/github/test/logctool_LogC3_out.cube
+```
 
 Building
 --------
@@ -29,61 +99,6 @@ mkdir build
 cd build
 cmake ..
 cmake .. -DCMAKE_INSTALL_PREFIX=<path>/3rdparty/build/macosx/arm64.debug -DCMAKE_INSTALL_PREFIX=<path>/3rdparty/build/macosx/arm64.debug -DCMAKE_CXX_FLAGS="-I<path>/3rdparty/build/macosx/arm64.debug/include/eigen3" -DBUILD_SHARED_LIBS=TRUE -GXcode
-```
-
-Usage
------
-
-Print logctool help message with flag ```--help```.
-
-```shell
-logctool -- a set of utilities for processing logc encoded images
-
-Usage: logctool [options] filename...
-
-Commands that read images:
-    -i FILENAME                         Input chart file
-General flags:
-    --help                              Print help message
-    -v                                  Verbose status messages
-    -d                                  Debug status messages
-General flags:
-    --ei EI                             LogC exposure index
-    --dataformat DATAFORMAT             LogC format (float, uint10, uint16 and unit32) (default: float)
-    --convertlut LUT                    LogC conversion lut
-Output flags:
-    --outputfilename FILE               Output filename of log steps
-    --outputwidth WIDTH                 Output width of log steps
-    --outputheight HEIGHT               Output height of log steps
-    --outputfalsecolorcubefile FILE     Optional output false color cube (lut) file
-    --outputstopscubefile FILE          Optional output stops cube (lut) file
-```
-
-
-Generate LogC steps in OpenEXR float
---------
-
-```shell
-./logcotol
--v
---outputwidth 2048
---outputheight 1024
---dataformat float
---outpitfilename /Volumes/Build/github/test/logctool_LogC3.exr
---outputstopscubefile /Volumes/Build/github/test/logctool_LogC3_out.cube
-```
-
-Generate Conversion LUTs in Davinci Resolve
---------
-
-```shell
-./logcotol
--v
---outputwidth 2048
---outputheight 1024
---dataformat float
---outpitfilename /Volumes/Build/github/test/logctool_LogC3.exr
---outputstopscubefile /Volumes/Build/github/test/logctool_LogC3_out.cube
 ```
 
 Packaging
