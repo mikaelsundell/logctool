@@ -76,7 +76,7 @@ Generate Conversion LUTs in Davinci Resolve
 --outputwidth 2048
 --outputheight 1024
 --dataformat float
---outpitfilename /Volumes/Build/github/test/logctool_LogC3.exr
+--outputfilename /Volumes/Build/github/test/logctool_LogC3.exr
 --outputstopscubefile /Volumes/Build/github/test/logctool_LogC3_out.cube
 ```
 
