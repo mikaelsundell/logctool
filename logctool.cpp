@@ -194,24 +194,6 @@ Imath::Vec3<float> mult_from_matrix(const Imath::Vec3<float>& src, const Imath::
     return src * matrix.transposed(); // imath row-order from column-order convention
 }
 
-Imath::Vec3<float> ciexyzd65_from_lab(const Imath::Vec3<float>& src) {
-    const double Xn = 0.95047;
-    const double Yn = 1.00000;
-    const double Zn = 1.08883;
-    double fy = (src.x + 16.0) / 116.0;
-    double fx = fy + (src.y / 500.0);
-    double fz = fy - (src.z / 200.0);
-    double fx3 = std::pow(fx, 3.0);
-    double fz3 = std::pow(fz, 3.0);
-    float X = (fx3 > 0.008856) ? fx3 : ((fx - 16.0 / 116.0) / 7.787);
-    float Y = (src.x > 0.008856) ? std::pow(((src.x + 16.0) / 116.0), 3.0) : (src.x / 903.3);
-    float Z = (fz3 > 0.008856) ? fz3 : ((fz - 16.0 / 116.0) / 7.787);
-    X *= Xn;
-    Y *= Yn;
-    Z *= Zn;
-    return Imath::Vec3<float>(X, Y, Z);
-}
-
 Imath::Vec3<float> ciexyzd50_from_lab(const Imath::Vec3<float>& src) {
     const double Xn = 0.9642;
     const double Yn = 1.00000;
@@ -418,17 +400,14 @@ main( int argc, const char * argv[])
         for (const std::pair<const ptree::key_type, ptree&>& item : pt) {
             std::string name = item.first;
             const ptree data = item.second;
-            
             LutTransform transform {
                 resources_path(data.get<std::string>("description", "")),
                 resources_path(data.get<std::string>("filename", "")),
             };
-            
             if (!Filesystem::exists(transform.filename)) {
                 print_warning("'filename' does not exist for transform: ", transform.filename);
                 continue;
             }
-
             transforms[name] = transform;
         }
     } else {
@@ -1087,8 +1066,7 @@ main( int argc, const char * argv[])
     }
     
     // output stops cube (LUT) file
-    if (tool.outputfalsecolorcubefile.length())
-    {
+    if (tool.outputfalsecolorcubefile.length()) {
         print_info("writing output false color cube (lut) file: ", tool.outputfalsecolorcubefile);
         
         int size = 32 + 1;
@@ -1122,8 +1100,7 @@ main( int argc, const char * argv[])
             color[0] = log;
         }
     
-        for (unsigned i = 0; i < nsize; ++i)
-        {
+        for (unsigned i = 0; i < nsize; ++i) {
             float r = std::max(0.0f, std::min(1.0f, static_cast<float>(i % size) / (size - 1)));
             float g = std::max(0.0f, std::min(1.0f, static_cast<float>((i / size) % size) / (size - 1)));
             float b = std::max(0.0f, std::min(1.0f, static_cast<float>((i / (size * size)) % size) / (size - 1)));

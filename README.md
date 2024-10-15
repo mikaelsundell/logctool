@@ -144,8 +144,11 @@ https://github.com/mikaelsundell/utilities/blob/master/whitepapers/arri/11-06-30
 Copyright
 ---------
 
-* Arri references   
+* Arri LogC   
 Copyright © 2023 ARRI AG. All rights reserved.
+
+* X-Rite ColorChecker   
+Copyright © 2009, X-Rite Incorporated. All rights reserved.
 
 * Roboto font   
 https://fonts.google.com/specimen/Roboto   
