@@ -45,7 +45,7 @@ Generate LogC stepchart in OpenEXR float
 --------
 
 ```shell
-./logcotol
+./logctool
 -v
 --outputwidth 2048
 --outputheight 1024
@@ -58,7 +58,7 @@ Generate LogC colorchecker in DPX 10-bit
 --------
 
 ```shell
-./logcotol
+./logctool
 -v
 --outputwidth 2048
 --outputheight 1024
@@ -71,7 +71,7 @@ Generate Conversion LUTs in Davinci Resolve
 --------
 
 ```shell
-./logcotol
+./logctool
 -v
 --outputwidth 2048
 --outputheight 1024

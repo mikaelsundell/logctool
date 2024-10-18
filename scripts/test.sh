@@ -4,7 +4,7 @@
 formats=("DCI_2K:2048:1080" "DCI_4K:4096:2160")
 
 # transforms
-transforms=("50D" "200T" "250D" "500T" "CanonLog" "CanonLog2" "CanonLog3" "Cineon" "REDgamma3" "REDgamma4" "Rec709" "SonySLog1" "SonySLog2" "SonySLog3" "sRGB")
+transforms=("CanonLog" "CanonLog2" "CanonLog3" "Cineon" "REDgamma3" "REDgamma4" "Rec709" "SonySLog1" "SonySLog2" "SonySLog3" "sRGB")
 
 # types
 types=("stepchart" "colorchecker")

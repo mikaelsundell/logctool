@@ -404,6 +404,7 @@ main( int argc, const char * argv[])
                 resources_path(data.get<std::string>("description", "")),
                 resources_path(data.get<std::string>("filename", "")),
             };
+
             if (!Filesystem::exists(transform.filename)) {
                 print_warning("'filename' does not exist for transform: ", transform.filename);
                 continue;
@@ -760,7 +761,7 @@ main( int argc, const char * argv[])
                     ImageBufAlgo::render_text(imageBuf,
                         width / 2.0,
                         height / 2.0,
-                        "LogC Ø:" +
+                        "LogC3 Ø:" +
                         str_by_float(midgray) +
                         " EI:" +
                         str_by_int(tool.ei),
