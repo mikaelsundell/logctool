@@ -83,6 +83,8 @@ Generate Conversion LUTs in Davinci Resolve
 Download LogC charts
 -------------
 
+LogC charts are available EXR float and DPX 10-bit precision.
+
 | LogC     | LUT | Output type | Download
 | ----------- | ----------- | ----------- | ----------- |
 | LogC3    | CanonLog   | Stepchart   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog_stepchart_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog_stepchart_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog_stepchart_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog_stepchart_DCI_4K.dpx) |
@@ -103,6 +105,8 @@ Download LogC charts
 | LogC3    | SonySLog2  | Colorchecker   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_colorchecker_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_colorchecker_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_colorchecker_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_colorchecker_DCI_4K.dpx) |
 | LogC3    | SonySLog3  | Colorchecker   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_4K.dpx) |
 | LogC3    | sRGB       | Colorchecker   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_4K.dpx) |
+
+
 
 Building
 --------
