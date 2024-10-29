@@ -1,4 +1,4 @@
-Readme for logctool
+README for logctool
 ==================
 
 [![License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/mikaelsundell/logctool/blob/master/README.md)
@@ -79,6 +79,30 @@ Generate Conversion LUTs in Davinci Resolve
 --outputfilename /Volumes/Build/github/test/logctool_LogC3.exr
 --outputstopscubefile /Volumes/Build/github/test/logctool_LogC3_out.cube
 ```
+
+Test data
+-------------
+
+| LogC     | LUT | Output type | Download
+| ----------- | ----------- | ----------- | ----------- |
+| LogC3 | CanonLog | Stepchart | DCI 2K  [EXR](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog_colorchecker_DCI_2K.exr) [DPX](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog_colorchecker_DCI_2K.dpx) 4K [EXR](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog_colorchecker_DCI_4K.exr) [DPX](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog_colorchecker_DCI_4K.dpx) 
+| LogC3 | CanonLog2 | Stepchart | DCI 2K  [EXR](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog2_colorchecker_DCI_2K.exr) [DPX](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog2_colorchecker_DCI_2K.dpx) 4K [EXR](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog2_colorchecker_DCI_4K.exr) [DPX](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog2_colorchecker_DCI_4K.dpx) 
+| LogC3 | CanonLog3 | Stepchart | DCI 2K  [EXR](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog3_colorchecker_DCI_2K.exr) [DPX](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog3_colorchecker_DCI_2K.dpx) 4K [EXR](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog3_colorchecker_DCI_4K.exr) [DPX](s3://mikaelsundell/github/logctool/logctool_LogC3_to_CanonLog3_colorchecker_DCI_4K.dpx) 
+| LogC3 | Cineon | Stepchart | DCI 2K 4K
+| LogC3 | Rec709 | Stepchart | DCI 2K 4K
+| LogC3 | SonySLog1 | Stepchart | DCI 2K 4K
+| LogC3 | SonySLog2 | Stepchart | DCI 2K 4K
+| LogC3 | SonySLog3 | Stepchart | DCI 2K 4K
+| LogC3 | sRGB | Stepchart | DCI 2K 4K
+| LogC3 | CanonLog | Colorchecker | DCI 2K [exr dpx] 4K [exr dpx]
+| LogC3 | CanonLog2 | Colorchecker | DCI 2K 4K
+| LogC3 | CanonLog3 | Colorchecker | DCI 2K 4K
+| LogC3 | Cineon | Colorchecker | DCI 2K 4K
+| LogC3 | Rec709 | Colorchecker | DCI 2K 4K
+| LogC3 | SonySLog1 | Colorchecker | DCI 2K 4K
+| LogC3 | SonySLog2 | Colorchecker | DCI 2K 4K
+| LogC3 | SonySLog3 | Colorchecker | DCI 2K 4K
+| LogC3 | sRGB | Colorchecker | DCI 2K 4K
 
 Building
 --------
