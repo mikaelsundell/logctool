@@ -961,10 +961,13 @@ main( int argc, const char * argv[])
                                 if (typedesc.is_floating_point()) {
                                     code = str_by_float(log.x) + ", " + str_by_float(log.y) + ", " + str_by_float(log.z);
                                 } else {
+                                    int x = round(typelimit * log.x);
+                                    int y = round(typelimit * log.y);
+                                    int z = round(typelimit * log.z);
                                     if (is10bit) {
-                                        code = str_by_10bit(log.x) + ", " + str_by_10bit(log.y) + ", " + str_by_10bit(log.z);
+                                        code = str_by_10bit(x) + ", " + str_by_10bit(y) + ", " + str_by_10bit(z);
                                     } else {
-                                        code = str_by_int(log.x) + ", " + str_by_int(log.y) + ", " + str_by_int(log.z);
+                                        code = str_by_int(x) + ", " + str_by_int(y) + ", " + str_by_int(z);
                                     }
                                 }
                                 int x = col * (patchwidth + spacing) + spacing + (patchwidth / 2);
@@ -1060,10 +1063,13 @@ main( int argc, const char * argv[])
                             if (typedesc.is_floating_point()) {
                                 code = str_by_float(log.x) + ", " + str_by_float(log.y) + ", " + str_by_float(log.z);
                             } else {
+                                int x = round(typelimit * log.x);
+                                int y = round(typelimit * log.y);
+                                int z = round(typelimit * log.z);
                                 if (is10bit) {
-                                    code = str_by_10bit(log.x) + ", " + str_by_10bit(log.y) + ", " + str_by_10bit(log.z);
+                                    code = str_by_10bit(x) + ", " + str_by_10bit(y) + ", " + str_by_10bit(z);
                                 } else {
-                                    code = str_by_int(log.x) + ", " + str_by_int(log.y) + ", " + str_by_int(log.z);
+                                    code = str_by_int(x) + ", " + str_by_int(y) + ", " + str_by_int(z);
                                 }
                             }
                             int x = referencex + ((width - referencex - spacing) / 2);
