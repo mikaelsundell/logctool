@@ -916,10 +916,14 @@ main( int argc, const char * argv[])
                             ciexyzd65_from_D50(ciexyzd50_from_lab(Imath::Vec3<float>(d50_l, d50_a, d50_b)));
 
                         Imath::Vec3<float> awg = colorspace.ciexyz_awg(xyz);
-                        Imath::Vec3<float> log = Imath::Vec3<float>(
-                            colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
-                        );
-                        
+                        Imath::Vec3<float> log;
+                        if (tool.outputlinear) {
+                            log = awg;
+                        } else {
+                            log = Imath::Vec3<float>(
+                                colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
+                            );
+                        }
                         if (tool.transform.size()) {
                             float rgb[3] = { log.x, log.y, log.z };
                             transformProcessor->applyRGB(rgb);
@@ -1021,10 +1025,14 @@ main( int argc, const char * argv[])
                             ciexyzd65_from_D50(ciexyzd50_from_lab(Imath::Vec3<float>(d50_l, d50_a, d50_b)));
 
                         Imath::Vec3<float> awg = colorspace.ciexyz_awg(xyz);
-                        Imath::Vec3<float> log = Imath::Vec3<float>(
-                            colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
-                        );
-                        
+                        Imath::Vec3<float> log;
+                        if (tool.outputlinear) {
+                            log = awg;
+                        } else {
+                            log = Imath::Vec3<float>(
+                                colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
+                            );
+                        }
                         if (tool.transform.size()) {
                             float rgb[3] = { log.x, log.y, log.z };
                             transformProcessor->applyRGB(rgb);

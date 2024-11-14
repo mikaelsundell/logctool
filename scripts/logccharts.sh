@@ -16,6 +16,13 @@ for format in "${formats[@]}"; do
     for type in "${types[@]}"; do
         image_option="--outputtype $type"
 
+        # linear exr
+        output_file="./logctool_LogC3_${type}_${name}_linear.exr"
+        logctool="./logctool --ei 800 --dataformat float --outputlinear --outputwidth $width --outputheight $height --outputfilename $output_file $image_option"
+        echo "creating EXR $output_file"
+        $logctool
+        echo "command: $logctool"
+
         # log exr
         output_file="./logctool_LogC3_${type}_${name}.exr"
         logctool="./logctool --ei 800 --dataformat float --outputwidth $width --outputheight $height --outputfilename $output_file $image_option"
