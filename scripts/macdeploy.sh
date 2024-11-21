@@ -125,7 +125,7 @@ function copy_dependency() {
                 local dependency_base=`basename "${dependency_path}"`
                 local deploy_path="${copy_dir}/${dependency_base}"
 
-                # copy deployo
+                # copy deploy
                 echo "Copy dependency '${dependency_path}' to '${deploy_path}'"
                 copy_deploy ${dependency_path} ${deploy_path}
 
@@ -140,7 +140,6 @@ function copy_dependency() {
         else
             echo "Skip copy dependency '${dependency_path}', not in dependency path"
         fi
-
     done
 }
 
