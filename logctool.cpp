@@ -543,9 +543,9 @@ main( int argc, const char * argv[])
         print_info(" channels: ", channels);
     }
     
-    int typesize = typedesc.size();
-    int typelimit = pow(2, typesize*8) - 1;
-    int type10bitlimit = pow(2, 10) - 1;
+    size_t typesize = typedesc.size();
+    size_t typelimit = pow(2, typesize*8) - 1;
+    size_t type10bitlimit = pow(2, 10) - 1;
     
     if (tool.verbose) {
         print_info(" typesize: ", typesize);
