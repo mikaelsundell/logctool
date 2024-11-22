@@ -151,16 +151,16 @@ int int_by_10bit(int value)
 
 std::string str_by_float(float value)
 {
-    char str[20];
-    sprintf(str, "%.2f", value);
-    return std::string(str);
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << value;
+    return oss.str();
 }
 
 std::string str_by_percent(float value)
 {
-    char str[20];
-    sprintf(str, "%.0f%%", value * 100);
-    return std::string(str);
+    std::ostringstream oss;
+    oss << static_cast<int>(value * 100) << '%';
+    return oss.str();
 }
 
 std::string str_by_int(int value)
@@ -397,7 +397,7 @@ main( int argc, const char * argv[])
     if (json.is_open()) {
         ptree pt;
         read_json(jsonfile, pt);
-        for (const std::pair<const ptree::key_type, ptree&>& item : pt) {
+        for (const std::pair<const ptree::key_type, ptree>& item : pt) {
             std::string name = item.first;
             const ptree data = item.second;
             LutTransform transform {
