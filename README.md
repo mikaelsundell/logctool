@@ -110,8 +110,6 @@ LogC charts are available EXR float and DPX 10-bit precision, EI 800.
 | LogC3    | SonySLog3  | Colorchecker   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_4K.dpx) |
 | LogC3    | sRGB       | Colorchecker   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_4K.dpx) |
 
-
-
 Building
 --------
 
@@ -133,14 +131,12 @@ cmake ..
 cmake .. -DCMAKE_INSTALL_PREFIX=<path>/3rdparty/build/macosx/arm64.debug -DCMAKE_INSTALL_PREFIX=<path>/3rdparty/build/macosx/arm64.debug -DCMAKE_CXX_FLAGS="-I<path>/3rdparty/build/macosx/arm64.debug/include/eigen3" -DBUILD_SHARED_LIBS=TRUE -GXcode
 ```
 
-Packaging
+Download
 ---------
 
-The `macdeploy.sh` script will deploy mac bundle to dmg including dependencies.
+Logcotol is included as part of pipeline tools. You can download it from the releases page:
 
-```shell
-./macdeploy.sh -e <path>/logctool -d <path> -p <path>
-```
+* https://github.com/mikaelsundell/pipeline/releases
 
 Dependencies
 -------------
