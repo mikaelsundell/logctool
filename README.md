@@ -6,7 +6,7 @@ Logctool
 Introduction
 ------------
 
-logctool a set of utilities for processing logc encoded images. Test and verification data, including a step chart and color checker grid, can be generated for color space evaluation and testing.
+Logctool a set of utilities for processing logc encoded images. Test and verification data, including a step chart and color checker grid, can be generated for color space evaluation and testing.
 
 ![Sample image or figure.](images/image.png 'logctool')
 
