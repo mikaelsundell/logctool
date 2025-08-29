@@ -12,6 +12,7 @@ Change log:
 
 | Date       | Description                             |
 |------------|-----------------------------------------|
+| 2025-08-29 | Added digitalsg output type |
 | 2025-08-27 | Fixed bg color issue, now in log |
 | 2025-08-27 | Added new output type digitalsg |
 
