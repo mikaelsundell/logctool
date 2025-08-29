@@ -6,11 +6,20 @@ Logctool
 Introduction
 ------------
 
-Logctool a set of utilities for processing logc encoded images. Test and verification data, including a step chart and color checker grid, can be generated for color space evaluation and testing.
+Logctool a set of utilities for processing logc encoded images. Test and verification data, including a step chart and color checker classic and digitalsg chart, can be generated for color space evaluation and testing.
+
+Change log:
+
+| Date       | Description                             |
+|------------|-----------------------------------------|
+| 2025-08-27 | Fixed bg color issue, now in log |
+| 2025-08-27 | Added new output type digitalsg |
+
+Examples of stepchart, classig and digitalsg output types.
 
 ![Sample image or figure.](images/image.png 'logctool')
 
-Examples of stepchart and colorchecker using --transform sRGB for viewing.
+
 
 Usage
 -----
@@ -27,10 +36,10 @@ General flags:
     -v                               Verbose status messages
     --transforms                     List all transforms
     --ei EI                          LogC exposure index
-    --dataformat DATAFORMAT          LogC format (default: float, uint8, uint10, uint16 and uint32)
+    --dataformat DATAFORMAT          LogC format. Options: float (default), uint8, uint10, uint16, uint32
     --transform TRANSFORM            LUT transform
 Output flags:
-    --outputtype OUTTYPE             Output type (default: stepchart, colorchecker)
+    --outputtype OUTTYPE             Output type. Options: stepchart (default), classic, digitalsg
     --outputfilename OUTFILENAME     Output filename of log steps
     --outputwidth WIDTH              Output width of log steps
     --outputheight HEIGHT            Output height of log steps
@@ -109,6 +118,17 @@ LogC charts are available EXR float and DPX 10-bit precision, EI 800.
 | LogC3    | SonySLog2  | Colorchecker   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_colorchecker_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_colorchecker_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_colorchecker_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_colorchecker_DCI_4K.dpx) |
 | LogC3    | SonySLog3  | Colorchecker   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_colorchecker_DCI_4K.dpx) |
 | LogC3    | sRGB       | Colorchecker   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_colorchecker_DCI_4K.dpx) |
+| _LogC3_   | _LogC3_  | _Digital SG_   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_digitalsg_DCI_4K.dpx) |
+| _LogC3_   | _Linear_  | _Digital SG_   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_digitalsg_DCI_2K_linear.exr) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_digitalsg_DCI_4K_linear.exr) |
+| LogC3    | CanonLog   | Digital SG   | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog_digitalsg_DCI_4K.dpx) |
+| LogC3    | CanonLog2  | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog2_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog2_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog2_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog2_digitalsg_DCI_4K.dpx) |
+| LogC3    | CanonLog3  | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog3_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog3_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog3_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_CanonLog3_digitalsg_DCI_4K.dpx) |
+| LogC3    | Cineon     | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_Cineon_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_Cineon_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_Cineon_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_Cineon_digitalsg_DCI_4K.dpx) |
+| LogC3    | Rec709     | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_Rec709_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_Rec709_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_Rec709_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_Rec709_digitalsg_DCI_4K.dpx) |
+| LogC3    | SonySLog1  | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog1_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog1_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog1_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog1_digitalsg_DCI_4K.dpx) |
+| LogC3    | SonySLog2  | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_digitalsg_DCI_4K.dpx) |
+| LogC3    | SonySLog3  | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_digitalsg_DCI_4K.dpx) |
+| LogC3    | sRGB       | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_digitalsg_DCI_4K.dpx) |
 
 Building
 --------
@@ -158,6 +178,7 @@ Project
 
 * GitHub page   
 https://github.com/mikaelsundell/logctool
+
 * Issues   
 https://github.com/mikaelsundell/logctool/issues
 
@@ -167,6 +188,12 @@ Resources
 
 * ALEXA Log C Curve    
 https://github.com/mikaelsundell/utilities/blob/master/whitepapers/arri/11-06-30_Alexa_LogC_Curve.pdf
+
+* XRite Colorchecker Classic    
+https://xritephoto.com/documents/literature/en/ColorData-1p_EN.pdf
+
+* XRite Colorchecker Digital SG    
+https://my-classic.xrite.com/documents/apps/public/digital_colorchecker_sg_l_a_b.txt
 
 
 Copyright

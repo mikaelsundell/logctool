@@ -7,7 +7,7 @@ formats=("DCI_2K:2048:1080" "DCI_4K:4096:2160")
 transforms=("CanonLog" "CanonLog2" "CanonLog3" "Cineon" "REDgamma3" "REDgamma4" "Rec709" "SonySLog1" "SonySLog2" "SonySLog3" "sRGB")
 
 # types
-types=("stepchart" "colorchecker")
+types=("stepchart" "classic" "digitalsg")
 
 # loop through the formats and split each value into name, width, and height
 for format in "${formats[@]}"; do

@@ -1,6 +1,6 @@
 {
     "1": {
-      "number": "dark skin",
+      "name": "dark skin",
       "sRGB": {
         "R": 115,
         "G": 82,
@@ -18,7 +18,7 @@
       }
     },
     "2": {
-      "number": "light skin",
+      "name": "light skin",
       "sRGB": {
         "R": 194,
         "G": 150,
@@ -36,7 +36,7 @@
       }
     },
     "3": {
-      "number": "blue sky",
+      "name": "blue sky",
       "sRGB": {
         "R": 98,
         "G": 122,
@@ -54,7 +54,7 @@
       }
     },
     "4": {
-      "number": "foliage",
+      "name": "foliage",
       "sRGB": {
         "R": 87,
         "G": 108,
@@ -72,7 +72,7 @@
       }
     },
     "5": {
-      "number": "blue flower",
+      "name": "blue flower",
       "sRGB": {
         "R": 133,
         "G": 128,
@@ -90,7 +90,7 @@
       }
     },
     "6": {
-      "number": "bluish green",
+      "name": "bluish green",
       "sRGB": {
         "R": 103,
         "G": 189,
@@ -108,7 +108,7 @@
       }
     },
     "7": {
-      "number": "orange",
+      "name": "orange",
       "sRGB": {
         "R": 214,
         "G": 126,
@@ -126,7 +126,7 @@
       }
     },
     "8": {
-      "number": "purplish blue",
+      "name": "purplish blue",
       "sRGB": {
         "R": 80,
         "G": 91,
@@ -144,7 +144,7 @@
       }
     },
     "9": {
-      "number": "moderate red",
+      "name": "moderate red",
       "sRGB": {
         "R": 193,
         "G": 90,
@@ -162,7 +162,7 @@
       }
     },
     "10": {
-      "number": "purple",
+      "name": "purple",
       "sRGB": {
         "R": 94,
         "G": 60,
@@ -180,7 +180,7 @@
       }
     },
     "11": {
-      "number": "yellow green",
+      "name": "yellow green",
       "sRGB": {
         "R": 157,
         "G": 188,
@@ -198,7 +198,7 @@
       }
     },
     "12": {
-      "number": "orange yellow",
+      "name": "orange yellow",
       "sRGB": {
         "R": 224,
         "G": 163,
@@ -216,7 +216,7 @@
       }
     },
     "13": {
-      "number": "blue",
+      "name": "blue",
       "sRGB": {
         "R": 56,
         "G": 61,
@@ -234,7 +234,7 @@
       }
     },
     "14": {
-      "number": "green",
+      "name": "green",
       "sRGB": {
         "R": 70,
         "G": 148,
@@ -252,7 +252,7 @@
       }
     },
     "15": {
-      "number": "red",
+      "name": "red",
       "sRGB": {
         "R": 175,
         "G": 54,
@@ -270,7 +270,7 @@
       }
     },
     "16": {
-      "number": "yellow",
+      "name": "yellow",
       "sRGB": {
         "R": 231,
         "G": 199,
@@ -288,7 +288,7 @@
       }
     },
     "17": {
-      "number": "magenta",
+      "name": "magenta",
       "sRGB": {
         "R": 187,
         "G": 86,
@@ -306,7 +306,7 @@
       }
     },
     "18": {
-      "number": "cyan",
+      "name": "cyan",
       "sRGB": {
         "R": 8,
         "G": 133,
@@ -324,7 +324,7 @@
       }
     },
     "19": {
-      "number": "white (.05*)",
+      "name": "white (.05*)",
       "sRGB": {
         "R": 243,
         "G": 243,
@@ -342,7 +342,7 @@
       }
     },
     "20": {
-      "number": "neutral 8 (.23*)",
+      "name": "neutral 8 (.23*)",
       "sRGB": {
         "R": 200,
         "G": 200,
@@ -360,7 +360,7 @@
       }
     },
     "21": {
-      "number": "neutral 6.5 (.44*)",
+      "name": "neutral 6.5 (.44*)",
       "sRGB": {
         "R": 160,
         "G": 160,
@@ -378,7 +378,7 @@
       }
     },
     "22": {
-      "number": "neutral 5 (.70*)",
+      "name": "neutral 5 (.70*)",
       "sRGB": {
         "R": 122,
         "G": 122,
@@ -396,7 +396,7 @@
       }
     },
     "23": {
-      "number": "neutral 3.5 (.05*)",
+      "name": "neutral 3.5 (.05*)",
       "sRGB": {
         "R": 85,
         "G": 85,
@@ -414,7 +414,7 @@
       }
     },
     "24": {
-      "number": "black (1.50*)",
+      "name": "black (1.50*)",
       "sRGB": {
         "R": 52,
         "G": 52,
