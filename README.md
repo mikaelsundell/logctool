@@ -20,8 +20,6 @@ Examples of stepchart, classig and digitalsg output types.
 
 ![Sample image or figure.](images/image.png 'logctool')
 
-
-
 Usage
 -----
 
@@ -182,6 +180,13 @@ https://github.com/mikaelsundell/logctool
 
 * Issues   
 https://github.com/mikaelsundell/logctool/issues
+
+
+Related
+-------
+
+* Color space conversion   
+https://github.com/mikaelsundell/colortool
 
 
 Resources

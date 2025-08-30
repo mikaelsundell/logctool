@@ -100,7 +100,6 @@ print_help(ArgParse& ap)
     ap.print_help();
 }
 
-// utils - dates
 std::string datetime()
 {
     std::time_t now = time(NULL);
@@ -111,8 +110,7 @@ std::string datetime()
     return std::string(datetime);
 }
 
-// utils - colors
-Imath::Vec3<float> rgb_from_hsv(const Imath::Vec3<float>& hsv) {
+Imath::Vec3<float> hsv_to_rgb(const Imath::Vec3<float>& hsv) {
     float hue = hsv.x;
     float saturation = hsv.y;
     float value = hsv.z;
@@ -139,41 +137,39 @@ Imath::Vec3<float> rgb_from_hsv(const Imath::Vec3<float>& hsv) {
     return Imath::Vec3<float>(r, g, b);
 }
 
-float color_by_gamma(float value, float gamma) {
+float pow_gamma(float value, float gamma) {
     return pow(value, gamma);
 }
 
-// utils - types
-int int_by_10bit(int value)
+int _10bit_to_int(int value)
 {
     return (value >> 6); // bit shift by 6 for 10 bit representation
 }
 
-std::string str_by_float(float value)
+std::string float_to_str(float value)
 {
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(2) << value;
     return oss.str();
 }
 
-std::string str_by_percent(float value)
+std::string percent_to_str(float value)
 {
     std::ostringstream oss;
     oss << static_cast<int>(value * 100) << '%';
     return oss.str();
 }
 
-std::string str_by_int(int value)
+std::string int_to_str(int value)
 {
     return std::to_string(value);
 }
 
-std::string str_by_10bit(int value)
+std::string _10bit_to_str(int value)
 {
-    return std::to_string(int_by_10bit(value)); // 10bit stored 16bit and bitshifted for strings
+    return std::to_string(_10bit_to_int(value)); // 10bit stored 16bit and bitshifted for strings
 }
 
-// utils - filesystem
 std::string program_path(const std::string& path)
 {
     return Filesystem::parent_path(Sysutil::this_program_path()) + path;
@@ -189,12 +185,13 @@ std::string resources_path(const std::string& resource)
     return Filesystem::parent_path(Sysutil::this_program_path()) + "/resources/" + resource;
 }
 
-// utils - colorspaces
-Imath::Vec3<float> mult_from_matrix(const Imath::Vec3<float>& src, const Imath::Matrix33<float>& matrix) {
+Imath::Vec3<float> mult_matrix(const Imath::Vec3<float>& src, const Imath::Matrix33<float>& matrix) {
     return src * matrix.transposed(); // imath row-order from column-order convention
 }
 
-Imath::Vec3<float> d50_from_lab(const Imath::Vec3<float>& src) {
+// Color space and conversions, with support for illuminants and white point adaptation.
+// https://github.com/mikaelsundell/colortool
+Imath::Vec3<float> lab_to_d50(const Imath::Vec3<float>& src) {
     const double Xn = 0.9642;
     const double Yn = 1.00000;
     const double Zn = 0.8251;
@@ -212,14 +209,12 @@ Imath::Vec3<float> d50_from_lab(const Imath::Vec3<float>& src) {
     return Imath::Vec3<float>(X, Y, Z);
 }
 
-Imath::Vec3<float> d65_from_D50(const Imath::Vec3<float>& src) {
-    
-    // http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
+Imath::Vec3<float> d50_to_d65(const Imath::Vec3<float>& src) {
     Imath::Matrix33<float> matrix(
       0.9555766f, -0.0230393f, 0.0631636f,
       -0.0282895f, 1.0099416f, 0.0210077f,
       0.0122982f, -0.020483f, 1.3299098f);
-    return mult_from_matrix(src, matrix);
+    return mult_matrix(src, matrix);
 }
 
 // logc3 colorspace
@@ -247,7 +242,7 @@ struct LogC3Colorspace
             1.789066f, -0.482534f, -0.200076f,
             -0.639849f, 1.396400f, 0.194432f,
             -0.041532f, 0.082335f, 0.878868f);
-        return mult_from_matrix(color, matrix);
+        return mult_matrix(color, matrix);
     }
     Imath::Vec3<float> awg3_from_xyz(Imath::Vec3<float> color)
     {
@@ -255,7 +250,7 @@ struct LogC3Colorspace
             0.638008f, 0.214704f, 0.097744f,
             0.291954f, 0.823841f, -0.115795f,
             0.002798f, -0.067034f, 1.153294f);
-        return mult_from_matrix(color, matrix);
+        return mult_matrix(color, matrix);
     }
 };
 
@@ -266,8 +261,8 @@ struct LutTransform
     std::string filename;
 };
 
-// colorchecker patch
-struct ColorCheckerPatch
+// patch
+struct Patch
 {
     int no;
     std::string name;
@@ -282,6 +277,295 @@ struct ColorCheckerPatch
     float munsell_value;
     float munsell_chroma;
 };
+
+std::vector<Patch> load_patches(const std::string& jsonfile)
+{
+    std::vector<Patch> patches;
+    std::ifstream json(jsonfile);
+    if (!json.is_open()) {
+        print_error("could not open colorpatches file: ", jsonfile);
+        return patches;
+    }
+    ptree pt;
+    read_json(jsonfile, pt);
+    for (const auto& item : pt) {
+        const ptree& data = item.second;
+        Patch patch;
+        patch.name = data.get<std::string>("name", "");
+        patch.cieLabd50_l = data.get<float>("CIE L*a*b*.L*", 0.0f);
+        patch.cieLabd50_a = data.get<float>("CIE L*a*b*.a*", 0.0f);
+        patch.cieLabd50_b = data.get<float>("CIE L*a*b*.b*", 0.0f);
+        // optional
+        patch.sRGB_r = data.get<float>("sRGB.R", 0.0f);
+        patch.sRGB_g = data.get<float>("sRGB.G", 0.0f);
+        patch.sRGB_b = data.get<float>("sRGB.B", 0.0f);
+        std::string munsell_hue = data.get<std::string>("Munsell Notation.Hue", "");
+        patch.munsell_hue = 0.0f;
+        if (!munsell_hue.empty()) {
+            size_t space_pos = munsell_hue.find(' ');
+            if (space_pos != std::string::npos) {
+                std::string hue_numeric = munsell_hue.substr(0, space_pos);
+                try {
+                    patch.munsell_hue = std::stof(hue_numeric);
+                } catch (...) {
+                    patch.munsell_hue = 0.0f;
+                }
+            }
+        }
+        patch.munsell_value = data.get<float>("Munsell Notation.Value", 0.0f);
+        patch.munsell_chroma = data.get<float>("Munsell Notation.Chroma", 0.0f);
+        patches.push_back(patch);
+    }
+    return patches;
+}
+
+void render_patches(
+    ImageBuf& imageBuf,
+    const std::vector<Patch>& patches,
+    int patchrows,
+    int patchcols,
+    int patchwidth,
+    int patchheight,
+    int spacing,
+    float sizecode,
+    float sizelabel,
+    LogC3Colorspace& colorspace,
+    const TypeDesc& typedesc,
+    bool is10bit,
+    float typelimit,
+    bool outputlinear,
+    const ConstCPUProcessorRcPtr& transformProcessor,
+    bool outputnolabels,
+    bool row_order
+) {
+    const int width = imageBuf.spec().width;
+    const int height = imageBuf.spec().height;
+    const int channels = imageBuf.nchannels();
+
+    const std::string fontfile = font_path("Roboto.ttf");
+    const float fontcolor[4] = {1,1,1,1};
+
+    for (int row = 0; row < patchrows; ++row) {
+        for (int col = 0; col < patchcols; ++col) {
+            const int no = row_order ? (row * patchcols + col)
+                                     : (col * patchrows + row);
+
+            const auto& patch = patches[no];
+
+            Imath::Vec3<float> xyz =
+                d50_to_d65(lab_to_d50(Imath::Vec3<float>(
+                    patch.cieLabd50_l, patch.cieLabd50_a, patch.cieLabd50_b)));
+
+            Imath::Vec3<float> awg = colorspace.xyz_from_awg3(xyz);
+            Imath::Vec3<float> out =
+                outputlinear
+                    ? awg
+                    : Imath::Vec3<float>(colorspace.lin2log(awg.x),
+                                         colorspace.lin2log(awg.y),
+                                         colorspace.lin2log(awg.z));
+
+            if (transformProcessor) {
+                float rgb[3] = { out.x, out.y, out.z };
+                transformProcessor->applyRGB(rgb);
+                out.setValue(rgb[0], rgb[1], rgb[2]);
+            }
+
+            const int x0 = col * (patchwidth + spacing) + spacing;
+            const int y0 = row * (patchheight + spacing) + spacing;
+            const int x1 = x0 + patchwidth;
+            const int y1 = y0 + patchheight;
+
+            ImageBufAlgo::fill(
+                imageBuf,
+                { out.x, out.y, out.z },
+                ROI(x0, x1, y0, y1, 0, 1, 0, std::min(3, channels)));
+
+            if (!outputnolabels) {
+                std::string code;
+                if (typedesc.is_floating_point()) {
+                    code = float_to_str(out.x) + ", "
+                         + float_to_str(out.y) + ", "
+                         + float_to_str(out.z);
+                } else {
+                    auto q = [&](float f)->int {
+                        f = std::max(0.0f, std::min(1.0f, f));
+                        return (int)std::lround(f * typelimit);
+                    };
+                    int xi = q(out.x), yi = q(out.y), zi = q(out.z);
+                    if (is10bit) {
+                        code = _10bit_to_str(xi) + ", "
+                             + _10bit_to_str(yi) + ", "
+                             + _10bit_to_str(zi);
+                    } else {
+                        code = int_to_str(xi) + ", "
+                             + int_to_str(yi) + ", "
+                             + int_to_str(zi);
+                    }
+                }
+
+                const int cx = x0 + patchwidth/2;
+                const int ty = y0;
+
+                ImageBufAlgo::render_text(
+                    imageBuf, cx, ty + (int)std::round(patchheight * 0.50f),
+                    patch.name, sizecode, fontfile, fontcolor,
+                    ImageBufAlgo::TextAlignX::Center,
+                    ImageBufAlgo::TextAlignY::Center);
+
+                ImageBufAlgo::render_text(
+                    imageBuf, cx, ty + (int)std::round(patchheight * 0.9f),
+                    code, sizelabel, fontfile, fontcolor,
+                    ImageBufAlgo::TextAlignX::Center,
+                    ImageBufAlgo::TextAlignY::Center);
+            }
+        }
+    }
+}
+
+static void render_reference_patches(
+    OIIO::ImageBuf& imageBuf,
+    const std::vector<Patch>& patches,
+    int referencex,
+    int referenceheight,
+    int spacing,
+    float sizecode,
+    float sizelabel,
+    LogC3Colorspace& colorspace,
+    const OIIO::TypeDesc& typedesc,
+    bool is10bit,
+    float typelimit,
+    bool outputlinear,
+    const OpenColorIO_v2_3::ConstCPUProcessorRcPtr& transformProcessor,
+    bool outputnolabels,
+    int white_index,
+    int black_index
+) {
+    const int width = imageBuf.spec().width;
+    const int height = imageBuf.spec().height;
+    const int nch = imageBuf.nchannels();
+
+    const int indices[2] = { white_index, black_index };
+    const std::string fontfile = font_path("Roboto.ttf");
+    const float fontcolor[4] = { 1, 1, 1, 1 };
+
+    for (int i = 0; i < 2; ++i) {
+        const auto& patch = patches[ indices[i] ];
+
+        Imath::Vec3<float> xyz =
+            d50_to_d65(lab_to_d50(Imath::Vec3<float>(
+                patch.cieLabd50_l, patch.cieLabd50_a, patch.cieLabd50_b)));
+
+        Imath::Vec3<float> awg = colorspace.xyz_from_awg3(xyz);
+        Imath::Vec3<float> out = outputlinear
+            ? awg
+            : Imath::Vec3<float>(colorspace.lin2log(awg.x),
+                                 colorspace.lin2log(awg.y),
+                                 colorspace.lin2log(awg.z));
+
+        if (transformProcessor) {
+            float rgb[3] = { out.x, out.y, out.z };
+            transformProcessor->applyRGB(rgb);
+            out.setValue(rgb[0], rgb[1], rgb[2]);
+        }
+
+        const int x0 = referencex;
+        const int x1 = width - spacing;
+        const int y0 = i * (referenceheight + spacing) + spacing;
+        const int y1 = y0 + referenceheight - 1;
+
+        ImageBufAlgo::fill(
+            imageBuf,
+            { out.x, out.y, out.z },
+            OIIO::ROI(x0, x1, y0, y1, 0, 1, 0, std::min(3, nch)));
+
+        if (!outputnolabels) {
+            std::string code;
+            if (typedesc.is_floating_point()) {
+                code = float_to_str(out.x) + ", " +
+                       float_to_str(out.y) + ", " +
+                       float_to_str(out.z);
+            } else {
+                auto q = [&](float f)->int {
+                    f = std::max(0.0f, std::min(1.0f, f));
+                    return (int)std::lround(f * typelimit);
+                };
+                int xi = q(out.x), yi = q(out.y), zi = q(out.z);
+                if (is10bit) {
+                    code = _10bit_to_str(xi) + ", " +
+                           _10bit_to_str(yi) + ", " +
+                           _10bit_to_str(zi);
+                } else {
+                    code = int_to_str(xi) + ", " +
+                           int_to_str(yi) + ", " +
+                           int_to_str(zi);
+                }
+            }
+
+            const int cx = referencex + ((width - referencex - spacing) / 2);
+
+            ImageBufAlgo::render_text(
+                imageBuf, cx, y0 + (int)std::round(referenceheight * 0.48f),
+                patch.name, sizecode, fontfile, fontcolor,
+                ImageBufAlgo::TextAlignX::Center, ImageBufAlgo::TextAlignY::Center);
+
+            ImageBufAlgo::render_text(
+                imageBuf, cx, y0 + (int)std::round(referenceheight * 0.55f),
+                code, sizelabel, fontfile, fontcolor,
+                ImageBufAlgo::TextAlignX::Center, ImageBufAlgo::TextAlignY::Center);
+        }
+    }
+}
+
+void render_labels(
+    OIIO::ImageBuf& imageBuf,
+    const std::string& dataformat,
+    const std::string& outputfilename,
+    const std::string& right_label,
+    const std::string& transform
+) {
+    const int width  = imageBuf.spec().width;
+    const int height = imageBuf.spec().height;
+
+    const float fontsmall = height * 0.025f;
+    const float xpad = width  * 0.02f;
+    const float ybase = height - height * 0.04f;
+    const float fontcolor[4] = {1,1,1,1};
+    const std::string fontfile = font_path("Roboto.ttf");
+
+    std::string left =
+        std::string("Logctool ") + datetime() + " " +
+        Filesystem::filename(outputfilename) + " (" +
+        dataformat + " " +
+        std::to_string(width) + "x" + std::to_string(height) + ")";
+
+    if (!transform.empty()) {
+        left += " - transform: " + transform;
+    }
+
+    OIIO::ImageBufAlgo::render_text(
+        imageBuf,
+        (int)std::round(xpad),
+        (int)std::round(ybase),
+        left,
+        fontsmall,
+        fontfile,
+        fontcolor,
+        OIIO::ImageBufAlgo::TextAlignX::Left,
+        OIIO::ImageBufAlgo::TextAlignY::Center
+    );
+
+    OIIO::ImageBufAlgo::render_text(
+        imageBuf,
+        (int)std::round(width - xpad),
+        (int)std::round(ybase),
+        right_label,
+        fontsmall,
+        fontfile,
+        fontcolor,
+        OIIO::ImageBufAlgo::TextAlignX::Right,
+        OIIO::ImageBufAlgo::TextAlignY::Center
+    );
+}
 
 // main
 int
@@ -510,7 +794,7 @@ main( int argc, const char * argv[])
         return EXIT_FAILURE;
     }
     
-    // LUT info
+    // lut info
     ConstConfigRcPtr config = Config::CreateRaw();
     ConstCPUProcessorRcPtr transformProcessor;
     
@@ -607,9 +891,9 @@ main( int argc, const char * argv[])
                 }
                 if (tool.verbose) {
                     if (is10bit) {
-                        print_info("   value: ", str_by_10bit(value));
+                        print_info("   value: ", _10bit_to_str(value));
                     } else {
-                        print_info("   value: ", str_by_int(value));
+                        print_info("   value: ", int_to_str(value));
                     }
                 }
             }
@@ -696,6 +980,7 @@ main( int argc, const char * argv[])
                     }
                 }
             }
+            
             // labels
             {
                 if (!tool.outputnolabels) {
@@ -735,15 +1020,15 @@ main( int argc, const char * argv[])
                         {
                             std::string code, signal;
                             if (typedesc.is_floating_point()) {
-                                code = str_by_float(value);
-                                signal = str_by_percent(value);
+                                code = float_to_str(value);
+                                signal = percent_to_str(value);
                             } else {
                                 if (is10bit) {
-                                    code = str_by_10bit(value);
-                                    signal = str_by_percent((float)int_by_10bit(value) / type10bitlimit);
+                                    code = _10bit_to_str(value);
+                                    signal = percent_to_str((float)_10bit_to_int(value) / type10bitlimit);
                                 } else {
-                                    code = str_by_int(value);
-                                    signal = str_by_percent(value / typelimit);
+                                    code = int_to_str(value);
+                                    signal = percent_to_str(value / typelimit);
                                 }
                             }
                             ImageBufAlgo::render_text(
@@ -775,9 +1060,9 @@ main( int argc, const char * argv[])
                         width / 2.0,
                         height / 2.0,
                         "LogC3 Ø:" +
-                        str_by_float(midgray) +
+                        float_to_str(midgray) +
                         " EI:" +
-                        str_by_int(tool.ei),
+                        int_to_str(tool.ei),
                         fontlarge,
                         font_path(font),
                         fontcolor,
@@ -852,50 +1137,8 @@ main( int argc, const char * argv[])
     else if (tool.outputtype == "classic") {
         print_info("type: classic");
         
-        // colorchecker
-        std::vector<ColorCheckerPatch> patches;
-        std::string jsonfile = resources_path("classic.json");
-        std::ifstream json(jsonfile);
-        if (json.is_open()) {
-            ptree pt;
-            read_json(jsonfile, pt);
-            for (const std::pair<const ptree::key_type, ptree>& item : pt) {
-                int no = std::stoi(item.first);
-                const ptree& data = item.second;
-                ColorCheckerPatch patch;
-                patch.no = no;
-                patch.name = data.get<std::string>("name", "");
-                patch.cieLabd50_l = data.get<float>("CIE L*a*b*.L*", 0.0f);
-                patch.cieLabd50_a = data.get<float>("CIE L*a*b*.a*", 0.0f);
-                patch.cieLabd50_b = data.get<float>("CIE L*a*b*.b*", 0.0f);
-                // optional
-                patch.sRGB_r = data.get<float>("sRGB.R", 0.0f);
-                patch.sRGB_g = data.get<float>("sRGB.G", 0.0f);
-                patch.sRGB_b = data.get<float>("sRGB.B", 0.0f);
-                std::string munsell_hue = data.get<std::string>("Munsell Notation.Hue", "");
-                patch.munsell_hue = 0.0f;
-                if (!munsell_hue.empty()) {
-                    size_t space_pos = munsell_hue.find(' ');
-                    if (space_pos != std::string::npos) {
-                        std::string hue_numeric = munsell_hue.substr(0, space_pos);
-                        try {
-                            patch.munsell_hue = std::stof(hue_numeric);
-                        } catch (...) {
-                            patch.munsell_hue = 0.0f;
-                        }
-                    }
-                }
-                patch.munsell_value = data.get<float>("Munsell Notation.Value", 0.0f);
-                patch.munsell_chroma = data.get<float>("Munsell Notation.Chroma", 0.0f);
-                patches.push_back(patch);
-            }
-        }
-        else {
-            print_error("could not open colorpatches file: ", jsonfile);
-            ap.abort();
-            return EXIT_FAILURE;
-        }
-        
+        // patches
+        std::vector<Patch> patches = load_patches(resources_path("classic.json"));
         if (patches.size() != 24) {
             print_error("could not match colorpatches 4 rows x 6 colums = 24, is now: ", patches.size());
             ap.abort();
@@ -930,274 +1173,66 @@ main( int argc, const char * argv[])
                 ImageBufAlgo::fill(imageBuf, {log, log, log});
             }
             
-            // classic patches
-            {
-                float spacing = width * 0.02;
-                int colorswidth = width * 0.8;
-                int patchrows = 4;
-                int patchcols = 6;
-                int patchwidth = (colorswidth - (patchcols + 1) * spacing) / patchcols;
-                int patchheight = ((height - height * 0.05) - (patchrows + 1) * spacing) / patchrows;
-                
-                for (int row = 0; row < patchrows; ++row) {
-                    for (int col = 0; col < patchcols; ++col) {
-                        int no = (row * patchcols) + col;
-                        ColorCheckerPatch& patch = patches[no];
-                        float d50_l = patch.cieLabd50_l;
-                        float d50_a = patch.cieLabd50_a;
-                        float d50_b = patch.cieLabd50_b;
-                        
-                        Imath::Vec3<float> xyz =
-                        d65_from_D50(d50_from_lab(Imath::Vec3<float>(d50_l, d50_a, d50_b)));
-                        
-                        Imath::Vec3<float> awg = colorspace.xyz_from_awg3(xyz);
-                        Imath::Vec3<float> log;
-                        if (tool.outputlinear) {
-                            log = awg;
-                        } else {
-                            log = Imath::Vec3<float>(
-                                colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
-                            );
-                        }
-                        if (tool.transform.size()) {
-                            float rgb[3] = { log.x, log.y, log.z };
-                            transformProcessor->applyRGB(rgb);
-                            log.x = rgb[0];
-                            log.y = rgb[1];
-                            log.z = rgb[2];
-                        }
-                        void* pixeldata = malloc(typesize * channels);
-                        if (typedesc.is_floating_point()) {
-                            float pixel[3] = { log.x, log.y, log.z };
-                            memcpy(pixeldata, pixel, typesize * channels);
-                        } else {
-                            float colors[3] = { log.x, log.y, log.z };
-                            for (int i = 0; i < 3; ++i) {
-                                int value = round(colors[i] * typelimit);
-                                memcpy((char*)pixeldata + i * typesize, &value, typesize);
-                            }
-                        }
-                        int xwidth = col * (patchwidth + spacing) + spacing;
-                        int yheight = (col + 1) * (patchwidth + spacing);
-                        
-                        for (int y = row * (patchheight + spacing) + spacing; y < (row + 1) * (patchheight + spacing); ++y) {
-                            for (int x = col * (patchwidth + spacing) + spacing; x < (col + 1) * (patchwidth + spacing); ++x) {
-                                int offset = (y * width + x) * channels;
-                                for (int c = 0; c < channels; ++c) {
-                                    memcpy((char*)imagedata + typesize * (offset + c), (char*)pixeldata + typesize * c, typesize);
-                                }
-                            }
-                        }
-                        // labels
-                        {
-                            if (!tool.outputnolabels) {
-                                std::string font = "Roboto.ttf";
-                                float sizecode = height * 0.015;
-                                float sizelabel = height * 0.025;
-                                float fontcolor[] = { 1, 1, 1, 1 };
-                                
-                                std::string code;
-                                if (typedesc.is_floating_point()) {
-                                    code = str_by_float(log.x) + ", " + str_by_float(log.y) + ", " + str_by_float(log.z);
-                                } else {
-                                    int x = round(typelimit * log.x);
-                                    int y = round(typelimit * log.y);
-                                    int z = round(typelimit * log.z);
-                                    if (is10bit) {
-                                        code = str_by_10bit(x) + ", " + str_by_10bit(y) + ", " + str_by_10bit(z);
-                                    } else {
-                                        code = str_by_int(x) + ", " + str_by_int(y) + ", " + str_by_int(z);
-                                    }
-                                }
-                                int x = col * (patchwidth + spacing) + spacing + (patchwidth / 2);
-                                int y = row * (patchheight + spacing) + spacing;
-                                
-                                ImageBufAlgo::render_text(
-                                    imageBuf,
-                                    x,
-                                    y + (patchheight * 0.75),
-                                    patch.name,
-                                    sizecode,
-                                    font_path(font),
-                                    fontcolor,
-                                    ImageBufAlgo::TextAlignX::Center,
-                                    ImageBufAlgo::TextAlignY::Center
-                                );
-                                
-                                ImageBufAlgo::render_text(
-                                    imageBuf,
-                                    x,
-                                    y + (patchheight * 0.9),
-                                    code,
-                                    sizelabel,
-                                    font_path(font),
-                                    fontcolor,
-                                    ImageBufAlgo::TextAlignX::Center,
-                                    ImageBufAlgo::TextAlignY::Center
-                                );
-                            }
-                        }
-                        free(pixeldata);
-                    }
-                }
-                // reference patches
-                {
-                    int referencex = colorswidth;
-                    int referenceheight = ((height - height * 0.05) - (2 + 1) * spacing) / 2;
-                    for (int i = 0; i < 2; ++i) {
-                        int no;
-                        if (i == 0) {
-                            no = 18; // white (0.05")
-                        } else {
-                            no = 23; // black (1.50")
-                        }
-                        ColorCheckerPatch& patch = patches[no];
-                        float d50_l = patch.cieLabd50_l;
-                        float d50_a = patch.cieLabd50_a;
-                        float d50_b = patch.cieLabd50_b;
-                        
-                        Imath::Vec3<float> xyz =
-                        d65_from_D50(d50_from_lab(Imath::Vec3<float>(d50_l, d50_a, d50_b)));
-                        
-                        Imath::Vec3<float> awg = colorspace.xyz_from_awg3(xyz);
-                        Imath::Vec3<float> log;
-                        if (tool.outputlinear) {
-                            log = awg;
-                        } else {
-                            log = Imath::Vec3<float>(
-                                colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
-                            );
-                        }
-                        if (tool.transform.size()) {
-                            float rgb[3] = { log.x, log.y, log.z };
-                            transformProcessor->applyRGB(rgb);
-                            log.x = rgb[0];
-                            log.y = rgb[1];
-                            log.z = rgb[2];
-                        }
-                        void* pixeldata = malloc(typesize * channels);
-                        if (typedesc.is_floating_point()) {
-                            float pixel[3] = { log.x, log.y, log.z };
-                            memcpy(pixeldata, pixel, typesize * channels);
-                        } else {
-                            float colors[3] = { log.x, log.y, log.z };
-                            for (int i = 0; i < 3; ++i) {
-                                int value = round(colors[i] * typelimit);
-                                memcpy((char*)pixeldata + i * typesize, &value, typesize);
-                            }
-                        }
-                        for (int y = i * (referenceheight + spacing) + spacing; y < ((i + 1) * (referenceheight + spacing)) - 1; ++y) {
-                            for (int x = referencex; x < width - spacing; ++x) {
-                                int offset = (y * width + x) * channels;
-                                for (int c = 0; c < channels; ++c) {
-                                    memcpy((char*)imagedata + typesize * (offset + c), (char*)pixeldata + typesize * c, typesize);
-                                }
-                            }
-                        }
-                        // labels
-                        {
-                            if (!tool.outputnolabels) {
-                                std::string font = "Roboto.ttf";
-                                float sizecode = height * 0.015;
-                                float sizelabel = height * 0.025;
-                                float fontcolor[] = { 1, 1, 1, 1 };
-                                
-                                std::string code;
-                                if (typedesc.is_floating_point()) {
-                                    code = str_by_float(log.x) + ", " + str_by_float(log.y) + ", " + str_by_float(log.z);
-                                } else {
-                                    int x = round(typelimit * log.x);
-                                    int y = round(typelimit * log.y);
-                                    int z = round(typelimit * log.z);
-                                    if (is10bit) {
-                                        code = str_by_10bit(x) + ", " + str_by_10bit(y) + ", " + str_by_10bit(z);
-                                    } else {
-                                        code = str_by_int(x) + ", " + str_by_int(y) + ", " + str_by_int(z);
-                                    }
-                                }
-                                int x = referencex + ((width - referencex - spacing) / 2);
-                                int y = i * (referenceheight + spacing) + spacing;
-                                
-                                ImageBufAlgo::render_text(
-                                    imageBuf,
-                                    x,
-                                    y + (referenceheight * 0.48),
-                                    patch.name,
-                                    sizecode,
-                                    font_path(font),
-                                    fontcolor,
-                                    ImageBufAlgo::TextAlignX::Center,
-                                    ImageBufAlgo::TextAlignY::Center
-                                );
-                                
-                                ImageBufAlgo::render_text(
-                                    imageBuf,
-                                    x,
-                                    y + (referenceheight * 0.55),
-                                    code,
-                                    sizelabel,
-                                    font_path(font),
-                                    fontcolor,
-                                    ImageBufAlgo::TextAlignX::Center,
-                                    ImageBufAlgo::TextAlignY::Center
-                                );
-                            }
-                        }
-                        free(pixeldata);
-                    }
-                }
-                // labels
-                {
-                    if (!tool.outputnolabels) {
-                        std::string font = "Roboto.ttf";
-                        float fontsmall = height * 0.025;
-                        float fontmedium = height * 0.04;
-                        float fontlarge = height * 0.08;
-                        float fontcolor[] = { 1, 1, 1, 1 };
-                        
-                        std::string logctool =
-                        "Logctool " +
-                        datetime() +
-                        " " +
-                        Filesystem::filename(tool.outputfilename) +
-                        " (" +
-                        tool.dataformat +
-                        " " +
-                        std::to_string(spec.width) +
-                        "x" +
-                        std::to_string(spec.height) +
-                        ")";
-                        
-                        if (!tool.transform.empty()) {
-                            logctool += " - transform: " + tool.transform;
-                        }
-                        
-                        ImageBufAlgo::render_text(
-                                                  imageBuf,
-                                                  width * 0.02,
-                                                  height - height * 0.04,
-                                                  logctool,
-                                                  fontsmall,
-                                                  font_path(font),
-                                                  fontcolor,
-                                                  ImageBufAlgo::TextAlignX::Left,
-                                                  ImageBufAlgo::TextAlignY::Center
-                                                  );
-                        
-                        ImageBufAlgo::render_text(
-                                                  imageBuf,
-                                                  width - (width * 0.02),
-                                                  height - height * 0.04,
-                                                  "colorchecker",
-                                                  fontsmall,
-                                                  font_path(font),
-                                                  fontcolor,
-                                                  ImageBufAlgo::TextAlignX::Right,
-                                                  ImageBufAlgo::TextAlignY::Center
-                                                  );
-                    }
-                }
+            // render
+            float spacing = width * 0.02;
+            int colorswidth = width * 0.8;
+            int patchrows = 4;
+            int patchcols = 6;
+            int patchwidth = (colorswidth - (patchcols + 1) * spacing) / patchcols;
+            int patchheight = ((height - height * 0.05) - (patchrows + 1) * spacing) / patchrows;
+            
+            int imageheight = imageBuf.spec().height;
+            float sizecode = imageheight * 0.015f;
+            float sizelabel = imageheight * 0.025f;
+            
+            render_patches(imageBuf,
+                           patches,
+                           patchrows,
+                           patchcols,
+                           patchwidth,
+                           patchheight,
+                           spacing,
+                           sizecode,
+                           sizelabel,
+                           colorspace,
+                           typedesc,
+                           is10bit,
+                           typelimit,
+                           tool.outputlinear,
+                           transformProcessor,
+                           tool.outputnolabels,
+                           true);
+            
+            int referencex = colorswidth;
+            int referenceheight = ((height - height * 0.05f) - (2 + 1) * spacing) / 2;
+            
+            render_reference_patches(
+                            imageBuf,
+                            patches,
+                            referencex,
+                            referenceheight,
+                            spacing,
+                            sizecode,
+                            sizelabel,
+                            colorspace,
+                            typedesc,
+                            is10bit,
+                            typelimit,
+                            tool.outputlinear,
+                            transformProcessor,
+                            tool.outputnolabels,
+                            18,
+                            23);
+            
+            if (!tool.outputnolabels) {
+                render_labels(
+                            imageBuf,
+                            tool.dataformat,
+                            tool.outputfilename,
+                            "colorchecker",
+                            tool.transform);
             }
+            
             print_info("writing output file: ", tool.outputfilename);
             
             if (!imageBuf.write(tool.outputfilename)) {
@@ -1208,52 +1243,10 @@ main( int argc, const char * argv[])
     else if (tool.outputtype == "digitalsg") {
         print_info("type: digitalsg");
         
-        // colorchecker
-        std::vector<ColorCheckerPatch> patches;
-        std::string jsonfile = resources_path("digitalsg.json");
-        std::ifstream json(jsonfile);
-        if (json.is_open()) {
-            ptree pt;
-            read_json(jsonfile, pt);
-            for (const std::pair<const ptree::key_type, ptree>& item : pt) {
-                int no = std::stoi(item.first);
-                const ptree& data = item.second;
-                ColorCheckerPatch patch;
-                patch.no = no;
-                patch.name = data.get<std::string>("name", "");
-                patch.cieLabd50_l = data.get<float>("CIE L*a*b*.L*", 0.0f);
-                patch.cieLabd50_a = data.get<float>("CIE L*a*b*.a*", 0.0f);
-                patch.cieLabd50_b = data.get<float>("CIE L*a*b*.b*", 0.0f);
-                // optional
-                patch.sRGB_r = data.get<float>("sRGB.R", 0.0f);
-                patch.sRGB_g = data.get<float>("sRGB.G", 0.0f);
-                patch.sRGB_b = data.get<float>("sRGB.B", 0.0f);
-                std::string munsell_hue = data.get<std::string>("Munsell Notation.Hue", "");
-                patch.munsell_hue = 0.0f;
-                if (!munsell_hue.empty()) {
-                    size_t space_pos = munsell_hue.find(' ');
-                    if (space_pos != std::string::npos) {
-                        std::string hue_numeric = munsell_hue.substr(0, space_pos);
-                        try {
-                            patch.munsell_hue = std::stof(hue_numeric);
-                        } catch (...) {
-                            patch.munsell_hue = 0.0f;
-                        }
-                    }
-                }
-                patch.munsell_value = data.get<float>("Munsell Notation.Value", 0.0f);
-                patch.munsell_chroma = data.get<float>("Munsell Notation.Chroma", 0.0f);
-                patches.push_back(patch);
-            }
-        }
-        else {
-            print_error("could not open colorpatches file: ", jsonfile);
-            ap.abort();
-            return EXIT_FAILURE;
-        }
-        
+        // patches
+        std::vector<Patch> patches = load_patches(resources_path("digitalsg.json"));
         if (patches.size() != 140) {
-            print_error("could not match colorpatches 4 rows x 6 colums = 140, is now: ", patches.size());
+            print_error("could not match colorpatches 10 rows x 14 colums = 140, is now: ", patches.size());
             ap.abort();
             return EXIT_FAILURE;
         }
@@ -1286,274 +1279,66 @@ main( int argc, const char * argv[])
                 ImageBufAlgo::fill(imageBuf, {log, log, log});
             }
             
-            // colorchecker patches
-            {
-                float spacing = width * 0.02;
-                int colorswidth = width * 0.8;
-                int patchrows = 10;
-                int patchcols = 14;
-                int patchwidth = (colorswidth - (patchcols + 1) * spacing) / patchcols;
-                int patchheight = ((height - height * 0.05) - (patchrows + 1) * spacing) / patchrows;
+            // render
+            float spacing = width * 0.02;
+            int colorswidth = width * 0.8;
+            int patchrows = 10;
+            int patchcols = 14;
+            int patchwidth = (colorswidth - (patchcols + 1) * spacing) / patchcols;
+            int patchheight = ((height - height * 0.05) - (patchrows + 1) * spacing) / patchrows;
+            
+            int imageheight = imageBuf.spec().height;
+            float sizecode = imageheight * 0.015f;
+            float sizelabel = imageheight * 0.008f;
+            
+            render_patches(imageBuf,
+                           patches,
+                           patchrows,
+                           patchcols,
+                           patchwidth,
+                           patchheight,
+                           spacing,
+                           sizecode,
+                           sizelabel,
+                           colorspace,
+                           typedesc,
+                           is10bit,
+                           typelimit,
+                           tool.outputlinear,
+                           transformProcessor,
+                           tool.outputnolabels,
+                           false);
+            
+            int referencex = colorswidth;
+            int referenceheight = ((height - height * 0.05f) - (2 + 1) * spacing) / 2;
 
-                for (int row = 0; row < patchrows; ++row) {
-                    for (int col = 0; col < patchcols; ++col) {
-                        int no = (col * patchrows) + row;
-                        ColorCheckerPatch& patch = patches[no];
-                        float d50_l = patch.cieLabd50_l;
-                        float d50_a = patch.cieLabd50_a;
-                        float d50_b = patch.cieLabd50_b;
-                        
-                        Imath::Vec3<float> xyz =
-                            d65_from_D50(d50_from_lab(Imath::Vec3<float>(d50_l, d50_a, d50_b)));
-
-                        Imath::Vec3<float> awg = colorspace.xyz_from_awg3(xyz);
-                        Imath::Vec3<float> log;
-                        if (tool.outputlinear) {
-                            log = awg;
-                        } else {
-                            log = Imath::Vec3<float>(
-                                colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
-                            );
-                        }
-                        if (tool.transform.size()) {
-                            float rgb[3] = { log.x, log.y, log.z };
-                            transformProcessor->applyRGB(rgb);
-                            log.x = rgb[0];
-                            log.y = rgb[1];
-                            log.z = rgb[2];
-                        }
-                        void* pixeldata = malloc(typesize * channels);
-                        if (typedesc.is_floating_point()) {
-                            float pixel[3] = { log.x, log.y, log.z };
-                            memcpy(pixeldata, pixel, typesize * channels);
-                        } else {
-                            float colors[3] = { log.x, log.y, log.z };
-                            for (int i = 0; i < 3; ++i) {
-                                int value = round(colors[i] * typelimit);
-                                memcpy((char*)pixeldata + i * typesize, &value, typesize);
-                            }
-                        }
-                        int xwidth = col * (patchwidth + spacing) + spacing;
-                        int yheight = (col + 1) * (patchwidth + spacing);
-                        
-                        for (int y = row * (patchheight + spacing) + spacing; y < (row + 1) * (patchheight + spacing); ++y) {
-                            for (int x = col * (patchwidth + spacing) + spacing; x < (col + 1) * (patchwidth + spacing); ++x) {
-                                int offset = (y * width + x) * channels;
-                                for (int c = 0; c < channels; ++c) {
-                                    memcpy((char*)imagedata + typesize * (offset + c), (char*)pixeldata + typesize * c, typesize);
-                                }
-                            }
-                        }
-                        // labels
-                        {
-                            if (!tool.outputnolabels) {
-                                std::string font = "Roboto.ttf";
-                                float sizecode = height * 0.015;
-                                float sizelabel = height * 0.008;
-                                float fontcolor[] = { 1, 1, 1, 1 };
-                                
-                                std::string code;
-                                if (typedesc.is_floating_point()) {
-                                    code = str_by_float(log.x) + ", " + str_by_float(log.y) + ", " + str_by_float(log.z);
-                                } else {
-                                    int x = round(typelimit * log.x);
-                                    int y = round(typelimit * log.y);
-                                    int z = round(typelimit * log.z);
-                                    if (is10bit) {
-                                        code = str_by_10bit(x) + ", " + str_by_10bit(y) + ", " + str_by_10bit(z);
-                                    } else {
-                                        code = str_by_int(x) + ", " + str_by_int(y) + ", " + str_by_int(z);
-                                    }
-                                }
-                                int x = col * (patchwidth + spacing) + spacing + (patchwidth / 2);
-                                int y = row * (patchheight + spacing) + spacing;
-              
-                                ImageBufAlgo::render_text(
-                                    imageBuf,
-                                    x,
-                                    y + (patchheight * 0.55),
-                                    patch.name,
-                                    sizecode,
-                                    font_path(font),
-                                    fontcolor,
-                                    ImageBufAlgo::TextAlignX::Center,
-                                    ImageBufAlgo::TextAlignY::Center
-                                );
-                                
-                                ImageBufAlgo::render_text(
-                                    imageBuf,
-                                    x,
-                                    y + (patchheight * 0.9),
-                                    code,
-                                    sizelabel,
-                                    font_path(font),
-                                    fontcolor,
-                                    ImageBufAlgo::TextAlignX::Center,
-                                    ImageBufAlgo::TextAlignY::Center
-                                );
-                            }
-                        }
-                        free(pixeldata);
-                    }
-                }
-                // reference patches
-                {
-                    int referencex = colorswidth;
-                    int referenceheight = ((height - height * 0.05) - (2 + 1) * spacing) / 2;
-                    for (int i = 0; i < 2; ++i) {
-                        int no;
-                        if (i == 0) {
-                            no = 0; // white
-                        } else {
-                            no = 20; // black
-                        }
-                        ColorCheckerPatch& patch = patches[no];
-                        float d50_l = patch.cieLabd50_l;
-                        float d50_a = patch.cieLabd50_a;
-                        float d50_b = patch.cieLabd50_b;
-                        
-                        Imath::Vec3<float> xyz =
-                            d65_from_D50(d50_from_lab(Imath::Vec3<float>(d50_l, d50_a, d50_b)));
-
-                        Imath::Vec3<float> awg = colorspace.xyz_from_awg3(xyz);
-                        Imath::Vec3<float> log;
-                        if (tool.outputlinear) {
-                            log = awg;
-                        } else {
-                            log = Imath::Vec3<float>(
-                                colorspace.lin2log(awg.x), colorspace.lin2log(awg.y), colorspace.lin2log(awg.z)
-                            );
-                        }
-                        if (tool.transform.size()) {
-                            float rgb[3] = { log.x, log.y, log.z };
-                            transformProcessor->applyRGB(rgb);
-                            log.x = rgb[0];
-                            log.y = rgb[1];
-                            log.z = rgb[2];
-                        }
-                        void* pixeldata = malloc(typesize * channels);
-                        if (typedesc.is_floating_point()) {
-                            float pixel[3] = { log.x, log.y, log.z };
-                            memcpy(pixeldata, pixel, typesize * channels);
-                        } else {
-                            float colors[3] = { log.x, log.y, log.z };
-                            for (int i = 0; i < 3; ++i) {
-                                int value = round(colors[i] * typelimit);
-                                memcpy((char*)pixeldata + i * typesize, &value, typesize);
-                            }
-                        }
-                        for (int y = i * (referenceheight + spacing) + spacing; y < ((i + 1) * (referenceheight + spacing)) - 1; ++y) {
-                            for (int x = referencex; x < width - spacing; ++x) {
-                                int offset = (y * width + x) * channels;
-                                for (int c = 0; c < channels; ++c) {
-                                    memcpy((char*)imagedata + typesize * (offset + c), (char*)pixeldata + typesize * c, typesize);
-                                }
-                            }
-                        }
-                        // labels
-                        {
-                            if (!tool.outputnolabels) {
-                            std::string font = "Roboto.ttf";
-                            float sizecode = height * 0.015;
-                            float sizelabel = height * 0.025;
-                            float fontcolor[] = { 1, 1, 1, 1 };
-                            
-                            std::string code;
-                            if (typedesc.is_floating_point()) {
-                                code = str_by_float(log.x) + ", " + str_by_float(log.y) + ", " + str_by_float(log.z);
-                            } else {
-                                int x = round(typelimit * log.x);
-                                int y = round(typelimit * log.y);
-                                int z = round(typelimit * log.z);
-                                if (is10bit) {
-                                    code = str_by_10bit(x) + ", " + str_by_10bit(y) + ", " + str_by_10bit(z);
-                                } else {
-                                    code = str_by_int(x) + ", " + str_by_int(y) + ", " + str_by_int(z);
-                                }
-                            }
-                            int x = referencex + ((width - referencex - spacing) / 2);
-                            int y = i * (referenceheight + spacing) + spacing;
-          
-                            ImageBufAlgo::render_text(
-                                imageBuf,
-                                x,
-                                y + (referenceheight * 0.48),
-                                patch.name,
-                                sizecode,
-                                font_path(font),
-                                fontcolor,
-                                ImageBufAlgo::TextAlignX::Center,
-                                ImageBufAlgo::TextAlignY::Center
-                            );
-                            
-                            ImageBufAlgo::render_text(
-                                imageBuf,
-                                x,
-                                y + (referenceheight * 0.55),
-                                code,
-                                sizelabel,
-                                font_path(font),
-                                fontcolor,
-                                ImageBufAlgo::TextAlignX::Center,
-                                ImageBufAlgo::TextAlignY::Center
-                            );
-                        }
-                        }
-                        free(pixeldata);
-                    }
-                }
-                // labels
-                {
-                    if (!tool.outputnolabels) {
-                        std::string font = "Roboto.ttf";
-                        float fontsmall = height * 0.025;
-                        float fontmedium = height * 0.04;
-                        float fontlarge = height * 0.08;
-                        float fontcolor[] = { 1, 1, 1, 1 };
-                        
-                        std::string logctool =
-                            "Logctool " +
-                            datetime() +
-                            " " +
-                            Filesystem::filename(tool.outputfilename) +
-                            " (" +
-                            tool.dataformat +
-                            " " +
-                            std::to_string(spec.width) +
-                            "x" +
-                            std::to_string(spec.height) +
-                            ")";
-
-                        if (!tool.transform.empty()) {
-                            logctool += " - transform: " + tool.transform;
-                        }
-                        
-                        ImageBufAlgo::render_text(
+            render_reference_patches(
                             imageBuf,
-                            width * 0.02,
-                            height - height * 0.04,
-                            logctool,
-                            fontsmall,
-                            font_path(font),
-                            fontcolor,
-                            ImageBufAlgo::TextAlignX::Left,
-                            ImageBufAlgo::TextAlignY::Center
-                        );
-
-                        ImageBufAlgo::render_text(
+                            patches,
+                            referencex,
+                            referenceheight,
+                            spacing,
+                            sizecode,
+                            sizelabel,
+                            colorspace,
+                            typedesc,
+                            is10bit,
+                            typelimit,
+                            tool.outputlinear,
+                            transformProcessor,
+                            tool.outputnolabels,
+                            0,
+                            20);
+            
+            if (!tool.outputnolabels) {
+                render_labels(
                             imageBuf,
-                            width - (width * 0.02),
-                            height - height * 0.04,
+                            tool.dataformat,
+                            tool.outputfilename,
                             "colorchecker",
-                            fontsmall,
-                            font_path(font),
-                            fontcolor,
-                            ImageBufAlgo::TextAlignX::Right,
-                            ImageBufAlgo::TextAlignY::Center
-                        );
-                    }
-                }
+                            tool.transform);
             }
+            
             print_info("writing output file: ", tool.outputfilename);
             
             if (!imageBuf.write(tool.outputfilename)) {
@@ -1606,17 +1391,17 @@ main( int argc, const char * argv[])
             float r = std::max(0.0f, std::min(1.0f, static_cast<float>(i % size) / (size - 1)));
             float g = std::max(0.0f, std::min(1.0f, static_cast<float>((i / size) % size) / (size - 1)));
             float b = std::max(0.0f, std::min(1.0f, static_cast<float>((i / (size * size)) % size) / (size - 1)));
-            float y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            float y = 0.2126 * r + 0.7152 * g + 0.0722 * b; // use Rec709 coeff
 
             int index = 0;
             for (Imath::Vec4<float>& color : colors) {
                 if (y <= color[0] || index == colors.size() - 1) {
-                    Imath::Vec3<float> rgb = rgb_from_hsv(
+                    Imath::Vec3<float> rgb = hsv_to_rgb(
                         Imath::Vec3<float>(color[1], color[2], color[3])
                     );
-                    values.push_back(color_by_gamma(rgb[0], 2.2f));
-                    values.push_back(color_by_gamma(rgb[1], 2.2f));
-                    values.push_back(color_by_gamma(rgb[2], 2.2f));
+                    values.push_back(pow_gamma(rgb[0], 2.2f));
+                    values.push_back(pow_gamma(rgb[1], 2.2f));
+                    values.push_back(pow_gamma(rgb[2], 2.2f));
                     break;
                 }
                 index++;
@@ -1710,12 +1495,12 @@ main( int argc, const char * argv[])
             int index = 0;
             for (Imath::Vec4<float>& color : colors) {
                 if (y <= color[0] || index == colors.size() - 1) {
-                    Imath::Vec3<float> rgb = rgb_from_hsv(
+                    Imath::Vec3<float> rgb = hsv_to_rgb(
                         Imath::Vec3<float>(color[1], color[2], color[3])
                     );
-                    values.push_back(color_by_gamma(rgb[0], 2.2f));
-                    values.push_back(color_by_gamma(rgb[1], 2.2f));
-                    values.push_back(color_by_gamma(rgb[2], 2.2f));
+                    values.push_back(pow_gamma(rgb[0], 2.2f));
+                    values.push_back(pow_gamma(rgb[1], 2.2f));
+                    values.push_back(pow_gamma(rgb[2], 2.2f));
                     break;
                 }
                 index++;
