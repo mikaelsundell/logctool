@@ -202,15 +202,42 @@ https://xritephoto.com/documents/literature/en/ColorData-1p_EN.pdf
 https://my-classic.xrite.com/documents/apps/public/digital_colorchecker_sg_l_a_b.txt
 
 
-Copyright
----------
+## License
 
-* Arri LogC   
-Copyright © 2023 ARRI AG. All rights reserved.
+### Code
+This project’s source code is licensed under the BSD 3-Clause License.
 
-* X-Rite ColorChecker   
-Copyright © 2009, X-Rite Incorporated. All rights reserved.
+### Third-Party Dependencies
 
-* Roboto font   
-https://fonts.google.com/specimen/Roboto   
-Designed by Christian Robertson
+- **OpenImageIO**  
+  © Contributors to the OpenImageIO project  
+  Licensed under the BSD 3-Clause License  
+  https://github.com/OpenImageIO/oiio
+
+- **OpenColorIO**  
+  © Academy Software Foundation  
+  Licensed under the BSD 3-Clause License  
+  https://github.com/AcademySoftwareFoundation/OpenColorIO
+
+- **OpenEXR**  
+  © Academy Software Foundation  
+  Licensed under the BSD 3-Clause License  
+  https://github.com/AcademySoftwareFoundation/openexr
+
+### Data & Resources
+
+- **ARRI LogC**  
+  © ARRI AG. All rights reserved.  
+  Used for testing and validation purposes.
+
+- **X-Rite ColorChecker**  
+  © X-Rite Incorporated. All rights reserved.  
+  Used for testing and validation purposes.
+
+- **Roboto Font**  
+  © Google / Christian Robertson  
+  Licensed under the Apache License 2.0  
+  https://fonts.google.com/specimen/Roboto
+
+### Note
+Users are responsible for complying with the licenses of third-party libraries, datasets, specifications, and resources when using or distributing this software.
