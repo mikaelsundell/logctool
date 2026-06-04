@@ -1545,10 +1545,8 @@ main( int argc, const char * argv[])
 
         int cubeSize = 33;
         int channels = 3;
-        int tilesX = 6;
-        int tilesY = (cubeSize + tilesX - 1) / tilesX;
-        int width = tilesX * cubeSize;
-        int height = tilesY * cubeSize;
+        int width = cubeSize * cubeSize;
+        int height = cubeSize;
 
         const TypeDesc typedesc = TypeDesc::HALF;
         const size_t typesize = typedesc.size();
@@ -1562,15 +1560,19 @@ main( int argc, const char * argv[])
 
         ImageBuf imageBuf(spec, imagedata);
         for (int b = 0; b < cubeSize; ++b) {
-            const int tileX = b % tilesX;
-            const int tileY = b / tilesX;
             const float bv = float(b) / float(cubeSize - 1);
+
+            const int offsetX = b * cubeSize;
+
             for (int y = 0; y < cubeSize; ++y) {
                 const float gv = 1.0f - float(y) / float(cubeSize - 1);
+
                 for (int x = 0; x < cubeSize; ++x) {
                     const float rv = float(x) / float(cubeSize - 1);
-                    const int px = tileX * cubeSize + x;
-                    const int py = tileY * cubeSize + y;
+
+                    const int px = offsetX + x;
+                    const int py = y;
+
                     float rgb[3] = { rv, gv, bv };
                     imageBuf.setpixel(px, py, rgb);
                 }
