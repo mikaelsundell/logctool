@@ -12,6 +12,7 @@ Change log:
 
 | Date       | Description                             |
 |------------|-----------------------------------------|
+| 2026-06-04 | Added colorcube output |
 | 2025-08-29 | Added digitalsg output type |
 | 2025-08-27 | Fixed bg color issue, now in log |
 | 2025-08-27 | Added new output type digitalsg |
@@ -46,6 +47,7 @@ Output flags:
     --outputnolabels                 Output no labels
     --outputfalsecolorcubefile FILE  Optional output false color cube (lut) file
     --outputstopscubefile FILE       Optional output stops cube (lut) file
+    --outputcolorcubefile FILE       Optional output color cube (exr) file
 ```
 
 
@@ -128,6 +130,7 @@ LogC charts are available EXR float and DPX 10-bit precision, EI 800.
 | LogC3    | SonySLog2  | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog2_digitalsg_DCI_4K.dpx) |
 | LogC3    | SonySLog3  | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_SonySLog3_digitalsg_DCI_4K.dpx) |
 | LogC3    | sRGB       | Digital SG    | DCI 2K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_digitalsg_DCI_2K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_digitalsg_DCI_2K.dpx) 4K [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_digitalsg_DCI_4K.exr) [DPX](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_LogC3_to_sRGB_digitalsg_DCI_4K.dpx) |
+| RGB    | RGB       | Colorcube    | SIZE 33 [EXR](https://mikaelsundell.s3.eu-west-1.amazonaws.com/github/logctool/logctool_colorcube.exr) |
 
 Building
 --------

@@ -28,7 +28,7 @@ using namespace OIIO;
 
 // opencolorio
 #include <OpenColorIO/OpenColorIO.h>
-using namespace OpenColorIO_v2_3;
+using namespace OpenColorIO_v2_5;
 
 // boost
 #include <boost/property_tree/ptree.hpp>
@@ -87,6 +87,7 @@ struct LogCTool
     std::string outputfilename;
     std::string outputfalsecolorcubefile;
     std::string outputstopscubefile;
+    std::string outputcolorcubefile;
     bool outputlinear = false;
     bool outputnolabels = false;
     int code = EXIT_SUCCESS;
@@ -435,7 +436,7 @@ static void render_reference_patches(
     bool is10bit,
     float typelimit,
     bool outputlinear,
-    const OpenColorIO_v2_3::ConstCPUProcessorRcPtr& transformProcessor,
+    const OpenColorIO_v2_5::ConstCPUProcessorRcPtr& transformProcessor,
     bool outputnolabels,
     int white_index,
     int black_index
@@ -627,6 +628,9 @@ main( int argc, const char * argv[])
     
     ap.arg("--outputstopscubefile %s:FILE", &tool.outputstopscubefile)
       .help("Optional output stops cube (lut) file");
+    
+    ap.arg("--outputcolorcubefile %s:FILE", &tool.outputcolorcubefile)
+      .help("Optional output color cube (exr) file");
 
     // clang-format on
     if (ap.parse_args(argc, (const char**)argv) < 0) {
@@ -1408,7 +1412,7 @@ main( int argc, const char * argv[])
             }
         }
         
-        std::ofstream outputFile(tool.outputstopscubefile);
+        std::ofstream outputFile(tool.outputfalsecolorcubefile);
         if (outputFile) {
             outputFile << "# LogCTool False color LUT" << std::endl;
             outputFile << "#   Input: LogC3 EI: " << tool.ei << std::endl;
@@ -1533,6 +1537,51 @@ main( int argc, const char * argv[])
         } else {
             print_error("could not open output stops cube (lut) file: ", tool.outputstopscubefile);
         }
+    }
+    
+    // output color cube (exr) file
+    if (tool.outputcolorcubefile.length()) {
+        print_info("writing output color cube (exr) file: ", tool.outputcolorcubefile);
+
+        int cubeSize = 33;
+        int channels = 3;
+        int tilesX = 6;
+        int tilesY = (cubeSize + tilesX - 1) / tilesX;
+        int width = tilesX * cubeSize;
+        int height = tilesY * cubeSize;
+
+        const TypeDesc typedesc = TypeDesc::HALF;
+        const size_t typesize = typedesc.size();
+        const size_t imagesize = size_t(width) * size_t(height) * size_t(channels);
+
+        void* imagedata = malloc(typesize * imagesize);
+        memset(imagedata, 0, typesize * imagesize);
+
+        ImageSpec spec(width, height, channels, typedesc);
+        spec.channelnames = { "R", "G", "B" };
+
+        ImageBuf imageBuf(spec, imagedata);
+        for (int b = 0; b < cubeSize; ++b) {
+            const int tileX = b % tilesX;
+            const int tileY = b / tilesX;
+            const float bv = float(b) / float(cubeSize - 1);
+            for (int y = 0; y < cubeSize; ++y) {
+                const float gv = 1.0f - float(y) / float(cubeSize - 1);
+                for (int x = 0; x < cubeSize; ++x) {
+                    const float rv = float(x) / float(cubeSize - 1);
+                    const int px = tileX * cubeSize + x;
+                    const int py = tileY * cubeSize + y;
+                    float rgb[3] = { rv, gv, bv };
+                    imageBuf.setpixel(px, py, rgb);
+                }
+            }
+        }
+        if (!imageBuf.write(tool.outputcolorcubefile)) {
+            print_error("could not write output color cube (exr) file: ", imageBuf.geterror());
+            free(imagedata);
+            return 1;
+        }
+        free(imagedata);
     }
     return 0;
 }
